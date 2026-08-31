@@ -19,6 +19,7 @@ A skill for any AI agent: assess whether a digital product or SaaS design closes
 - **单位经济学（可选）**：`references/economics.py` 在有数字时测算毛利率、LTV、LTV/CAC 与回本周期
 - **产品化输出（可选）**：`references/pitch-template.md` 把结论转成 30 秒 pitch、一句话价值主张、落地页首屏、三档定价卡与冷启动渠道清单
 - **结论输出**：生成可保存/分享的 Markdown 诊断报告文件（business-chain-report.md）
+- **增长实验**：references/growth-experiments.md 把「做点推广」变成可验证的 A/B 实验（假设、指标、样本、门槛、决策规则），用于获客与复购传播
 - 证据优先：证据不足的环节最高 3 分并标记，禁止臆测
 - **打分计算器**：可选的 `references/scoring.py`，用脚本校验平均分、结论与行动优先级，防止判定漂移
 
@@ -37,6 +38,8 @@ A skill for any AI agent: assess whether a digital product or SaaS design closes
 | 渠道分布 | 目标用户聚集的平台/社区 |
 
 **社区信号**：除常规检索词外，检索计划为社区相关指标（用户画像/痛点/付费意愿/竞品/渠道）增加 site: 定向查询。联网模式把结果收进报告的「社区信号 Community Signals」板块；无 key 降级时把直查清单写进 evidence_fill_form.json 的 community_plan 字段，由 agent 补查后回填 community_signals。
+
+即使没有任何 API key，引擎也会用 Hacker News 免费公开接口自动直抓社区讨论（无需 key）并加入「社区信号」板块。
 
 **搜索后端**（按顺序自动检测，配置任意一个即可）：
 - `TAVILY_API_KEY` — https://tavily.com（推荐）
@@ -111,6 +114,7 @@ git clone https://github.com/QundaiCai314/Dandelion.git
 - references/interview.md — Mom Test 风格访谈脚本（可选加深证据）
 - references/economics.py — 单位经济学测算器（毛利率、LTV/CAC、回本周期）
 - references/pitch-template.md — 产品化输出模板（pitch / 落地页首屏 / 定价卡）
+- references/growth-experiments.md — 增长实验模板（获客 / 复购传播 A/B 设计）
 - references/output-template.md — 报告模板与导出说明
 - references/scoring.py — 打分计算器（可选）：校验平均分、结论与行动优先级
 - docs/comparison.md — 同类工具对比与差异化定位

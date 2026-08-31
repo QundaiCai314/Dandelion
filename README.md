@@ -19,6 +19,7 @@ A skill for any AI agent: assess whether a **digital product / SaaS / software /
 - **Unit economics (optional)**: `references/economics.py` computes gross margin, LTV, LTV/CAC and payback period when you have numbers
 - **Productize (optional)**: `references/pitch-template.md` turns the verdict into a 30-second pitch, one-line value proposition, landing-page hero, pricing cards and cold-start channels
 - **Export**: generates a shareable Markdown report (`business-chain-report.md`)
+- **Growth experiments**: references/growth-experiments.md turns "do some marketing" into testable A/B experiments for Acquisition and Retention & Referral (hypothesis, metric, sample, thresholds, decision rules)
 - Evidence-first: stages without evidence are capped at 3 and flagged; no guessing
 - **Scoring calculator**: optional `references/scoring.py` verifies the average, verdict and action priority for consistent results
 
@@ -37,6 +38,8 @@ Every diagnosis starts with a market-research pass. The engine `references/marke
 | Channels | where target users gather |
 
 **Community signals**: besides general queries, the plan includes site-targeted queries for community-relevant metrics (user persona, pain points, willingness to pay, competitors, channels). Live search collects them into a "Community Signals" section of the report; in degraded mode the checklist is written to `community_plan` in `evidence_fill_form.json` for the agent to run and fill back into `community_signals`.
+
+Even without any API key, the engine automatically captures Hacker News discussions via its free public API (no key needed) and adds them to the Community Signals section.
 
 **Search backends** (auto-detected in order; set any one):
 - `TAVILY_API_KEY` — https://tavily.com (recommended)
@@ -119,6 +122,7 @@ Export: "Export the report to a file"
 - references/pitch-template.md — productize template (pitch / landing hero / pricing cards)
 - references/output-template.md — report template & export notes
 - references/scoring.py — optional scoring calculator (average, verdict, action priority)
+- references/growth-experiments.md — growth experiment template (A/B design for Acquisition / Retention & Referral)
 - docs/comparison.md — comparison vs similar tools & positioning
 - examples/example-output.md — example report
 - LICENSE — MIT License

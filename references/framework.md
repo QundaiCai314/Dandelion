@@ -203,16 +203,22 @@ Fixes proceed item by item in the order "broken → weak → growth levers". The
 市场调研 Market Research：配置搜索 API key 后重跑调研（TAVILY_API_KEY / SERPER_API_KEY / BING_API_KEY）；补齐缺失指标；把行业数据落进画像、定价与渠道选择；读「社区信号」核对真实需求；用 references/interview.md 做 3-5 个目标用户访谈
 - 真实需求 Real Demand：目标人群与决策状态定义模板、相邻人群区分表、桌面研究清单（社区/竞品/公开报告） target-segment & decision-state definition template, adjacent-segment distinction table, desk-research checklist (communities/competitors/public reports)
 - 价值主张 Value Proposition：一句话价值主张模板（为谁含决策状态/解决什么/为什么是你）、落地页首屏文案、与替代方案对比表 one-sentence value proposition template, landing-page above-the-fold copy, comparison table vs alternatives
-- 获客 Acquisition：种子用户获取计划（渠道 + 话术 + 数量目标）、落地页结构、内容选题清单 seed-user acquisition plan (channels + scripts + targets), landing page structure, content topic list
+- 获客 Acquisition：种子用户获取计划（渠道 + 话术 + 数量目标）、落地页结构、内容选题清单、用 references/growth-experiments.md 设计渠道与文案 A/B 实验 seed-user acquisition plan (channels + scripts + targets), landing page structure, content topic list, A/B experiments via references/growth-experiments.md
 - 付费转化 Paid Conversion：3 档定价方案、免费/付费边界定义、支付流程清单、用 references/economics.py 测算 LTV/CAC 与回本周期 3-tier pricing, free/paid boundary, checkout checklist, LTV/CAC model via references/economics.py
 - 交付与体验 Delivery & Experience：激活路径设计（3 步内兑现核心价值）、新手引导文案、激活指标定义 activation path (core value within 3 steps), onboarding copy, activation metric definition
-- 复购传播 Retention & Referral：留存机制设计（习惯循环/内容更新/续费提醒）、推荐奖励方案、流失召回路径 retention mechanics (habit loops/updates/renewal reminders), referral rewards, win-back paths
+- 复购传播 Retention & Referral：留存机制设计（习惯循环/内容更新/续费提醒）、推荐奖励方案、流失召回路径、用 references/growth-experiments.md 设计留存/推荐 A/B 实验 retention mechanics (habit loops/updates/renewal reminders), referral rewards, win-back paths, A/B experiments via references/growth-experiments.md
 
 ## 产品化输出（可选交付物）Productize (optional deliverable)
 用户诊断后可要求「产品化输出」：AI 按 references/pitch-template.md 生成 30 秒 pitch、一句话价值主张、
 落地页首屏结构与文案、三档定价卡、冷启动渠道清单。产出的是给用户的材料，不直接修改用户产品。
 On request the AI produces pitch / value proposition / landing-page hero / pricing cards / cold-start channels
 per references/pitch-template.md — materials FOR the user, never direct edits to their product.
+
+## 增长实验（可选验证工具）Growth Experiments (optional validation)
+修复「获客 / 复购与传播」时，AI 按 references/growth-experiments.md 输出实验卡（假设、指标、样本、门槛、决策规则）；
+实验结果回填证据档（A/B 达标且可重复 = strong、单次观察 = weak、未测 = none）并作为复检依据。
+When fixing Acquisition or Retention & Referral, the AI outputs experiment cards per references/growth-experiments.md;
+outcomes update evidence tiers (replicated A/B hit = strong, single observation = weak, untested = none) and drive re-checks.
 
 ## 复检规则 Re-check
 用户可随时要求「复检」：用当前证据重新逐环节打分，对比上次分数，更新结论与剩余行动。

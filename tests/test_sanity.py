@@ -114,6 +114,19 @@ def test_community_queries():
     assert "site:reddit.com" in cm_en["channels"][0]
 
 
+def test_hn_parse():
+    mr = load_module("market_research", os.path.join("references", "market_research.py"))
+    data = {"hits": [
+        {"title": "Ask HN: Great tools for solo SaaS founders?", "url": "https://example.com/x", "objectID": "1"},
+        {"title": "", "story_title": "Story with comments", "url": "", "objectID": "2"},
+    ]}
+    items = mr.parse_hn_response(data, 5)
+    assert len(items) == 2
+    assert items[0]["community_source"] == "hn"
+    assert items[1]["url"] == "https://news.ycombinator.com/item?id=2"
+    assert mr.search_hn("", 5) == []
+
+
 def test_economics_calculator():
     ec = load_module("economics", os.path.join("references", "economics.py"))
     healthy = ec.calculate({"price": 20, "unit_cost": 4, "cac": 100, "monthly_churn": 0.04})

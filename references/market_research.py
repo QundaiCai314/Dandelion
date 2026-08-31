@@ -39,6 +39,7 @@ Runs desk research on the web for a digital product and outputs evidence and
 社区直抓 Community: 检索计划包含 site:reddit.com / news.ycombinator.com / zhihu.com 等
 定向查询，报告输出「社区信号 Community Signals」板块；无 key 时社区直查清单写进
 evidence_fill_form.json 的 community_plan 字段，由 agent 补查后回填 community_signals。
+无 key 时还会自动直抓 Hacker News（免费公开接口，无需 key）。
 When no API key is configured: the program generates a search plan (query
 list per metric) and evidence_fill_form.json; the agent completes the evidence
 with its own web search, then runs --score-only to compute scores.
@@ -271,6 +272,36 @@ def search_bing(query, api_key, max_results=5):
             for r in data.get("webPages", {}).get("value", [])[:max_results]]
 
 
+def parse_hn_response(data, max_results=5):
+    """把 Hacker News Algolia 响应转成统一 evidence 条目（community_source=hn）。"""
+    items = []
+    for h in (data.get("hits") or [])[:max_results]:
+        title = h.get("title") or h.get("story_title") or ""
+        if not title:
+            continue
+        url = h.get("url") or ("https://news.ycombinator.com/item?id=" + str(h.get("objectID", "")))
+        snippet = (h.get("comment_text") or h.get("story_text") or "")
+        snippet = snippet.replace("<!-- -->", " ").strip()[:300]
+        items.append({"title": title, "url": url, "snippet": snippet,
+                      "community_source": "hn", "source": "hn"})
+    return items
+
+
+def search_hn(query, max_results=5, timeout=12):
+    """Hacker News 免费公开接口（Algolia，无需 key）。网络失败静默返回空列表。"""
+    if not query:
+        return []
+    url = ("https://hn.algolia.com/api/v1/search?query=" +
+           urllib.parse.quote(query) + "&hitsPerPage=%d" % max_results)
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "dandelion-market-research/1.2"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8", "replace"))
+        return parse_hn_response(data, max_results)
+    except Exception:
+        return []
+
+
 BACKENDS = [
     ("tavily", "TAVILY_API_KEY", search_tavily),
     ("serper", "SERPER_API_KEY", search_serper),
@@ -424,7 +455,8 @@ def render_markdown(report):
         lines.append("Real community discussions (directly captured; read them to verify demand & willingness to pay):")
         lines.append("")
         for e in community[:8]:
-            lines.append("- %s [%s](%s)" % (e.get("title", ""), e.get("url", ""), e.get("url", "")))
+            tag = "[HN] " if e.get("community_source") == "hn" else ""
+            lines.append("- %s%s [%s](%s)" % (tag, e.get("title", ""), e.get("url", ""), e.get("url", "")))
             snip = e.get("snippet", "").strip()
             if snip:
                 lines.append("  %s" % snip[:200])
@@ -514,6 +546,8 @@ def print_key_setup_hint():
     print("已自动降级：生成检索计划 + evidence_fill_form.json，由 agent 补查后打分。")
     print("Degraded: a search plan + evidence_fill_form.json was generated; the agent fills")
     print("evidence with its own web search, then scores.")
+    print("已尝试 Hacker News 免费接口直抓社区讨论（无需 key）；全自动搜索仍建议配置一个 key。")
+    print("A free Hacker News capture is attempted automatically; configure a key for full web search.")
     print()
     print("想让脚本全自动联网搜索？配置一个 key 即可（可选，约 2 分钟）。")
     print("Want fully automatic web search? Set up one key (optional, ~2 min):")
@@ -657,6 +691,24 @@ def main():
             json.dump(fill_out, f, ensure_ascii=False, indent=2)
 
         if not do_search:
+            if not args["no_search"]:
+                kw_hn = query_keywords(product)
+                t_hn = query_keywords(target_user) if target_user else ""
+                seen_hn = set()
+                for q in ([kw_hn] + ([t_hn] if t_hn and t_hn != kw_hn else []))[:2]:
+                    if not q:
+                        continue
+                    for item in search_hn(q, max_results=4):
+                        u = item.get("url", "")
+                        if u and u not in seen_hn:
+                            seen_hn.add(u)
+                            community_signals.append(item)
+                if seen_hn:
+                    backend = "hn (free, no key)"
+                    notes.append("已从 Hacker News 免费接口直抓 %d 条社区讨论（无需 key）；其余证据请按表单补查。"
+                                 % len(seen_hn))
+                    notes.append("Captured %d discussions from Hacker News (free API, no key); fill the rest via the form."
+                                 % len(seen_hn))
             preserved_any = any((preserved.get(p["id"]) or {}).get("evidence") for p in plan)
             mode = "agent_fill" if preserved_any else "plan_only"
             if preserved_any:
@@ -665,6 +717,15 @@ def main():
 
         if do_search:
             used_backends = []
+            if not args["no_search"]:
+                kw_hn = query_keywords(product)
+                t_hn = query_keywords(target_user) if target_user else ""
+                for q in ([kw_hn] + ([t_hn] if t_hn and t_hn != kw_hn else []))[:2]:
+                    if not q:
+                        continue
+                    community_signals.extend(search_hn(q, max_results=4))
+                if any(c.get("community_source") == "hn" for c in community_signals):
+                    used_backends.append("hn(free)")
             for p in plan:
                 evidence, seen = [], set()
                 for query in p["queries"]:

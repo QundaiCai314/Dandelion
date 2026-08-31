@@ -83,6 +83,7 @@ Assess whether a digital product/SaaS design closes the business loop, helping c
 - references/output-template.md — 报告模板与导出说明
   Report template and export notes
 - references/interview.md — 访谈脚本（Mom Test 风格，可选加深证据）Interview script (Mom Test style, optional)
+- references/growth-experiments.md — 增长实验模板（获客/复购传播 A/B 设计）Growth experiment template (A/B design)
 - references/economics.py — 单位经济学测算器（LTV/CAC、毛利率、回本周期）Unit economics calculator (LTV/CAC, margin, payback)
 - references/pitch-template.md — 产品化输出模板（pitch/落地页/定价卡）Productize template (pitch/landing/pricing)
 - docs/comparison.md — 同类工具对比与差异化定位 Comparison & positioning
