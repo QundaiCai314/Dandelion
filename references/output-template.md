@@ -13,14 +13,14 @@ Output the full report in this structure (language follows the language of the u
 One-sentence summary: target users, the problem solved, how you charge.
 
 ## 2. 逐环节诊断 Per-Stage Diagnosis
-每环节输出 Per stage:
+市场调研环节直接引用 references/market_research.py 输出的 8 指标分数与证据来源；其余环节输出 Per stage:
 - 判断 Judgment（1-2 句 1-2 sentences）
-- 依据 Basis（注明来源：你的回答 / 公开材料 / 证据不足 state the source: your answers / public materials / insufficient evidence）
+- 依据 Basis（注明来源 + 证据档 strong / weak / none，如「访谈 20 人」「无付费用户」；state the source and evidence tier, e.g., 20 interviews, no paying users）
 - 分数 Score（0-10）
 - 证据不足标记 Evidence flag（如有：列出需补充的信息 if any: list what to supply）
 
 ## 3. 总分与结论 Verdict
-- 各环节分数表（六环 + 平均分）Score table (6 stages + average)
+- 各环节分数表（七环 + 平均分）Score table (7 stages + average)
 - 结论 Verdict：链路打通 Loop Closed / 接近打通 Nearly Closed / 未打通 Not Closed，附一句理由 with a one-line reason
 - 他人项目 Projects of others：结论前注明「基于公开证据，不代表产品真实状态」prefix "based on public evidence, not the true state of the product"
 
@@ -44,4 +44,5 @@ Itemized: problem/stage, status (pending / in progress / done), deliverable (fix
 - 默认生成 Markdown 报告文件：保存到当前工作目录 business-chain-report.md，可直接分享。 By default generate a Markdown report: save as business-chain-report.md in the working directory, shareable.
 - 文件结构 = 本模板全部章节（0-7）。 File structure = all sections of this template (0-7).
 - 需要 PDF / DOCX 等其他格式时，按用户要求转换输出。 Convert to PDF/DOCX or other formats on request.
+
 

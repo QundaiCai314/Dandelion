@@ -3,12 +3,12 @@
 ## 两种模式下的证据含义 Evidence in Two Modes
 - 项目检查（他人项目）：证据 = 公开材料。公开材料里没有 → 标「证据不足」，该环节最高 3 分；报告不得把「没公开」当「没做」。
   Project Inspection (projects of others): evidence = public materials. Not in public materials → mark "insufficient evidence", cap the stage at 3; never treat "not published" as "not done".
-- 自检（自己项目）：证据 = 创造者的回答。答不出、没验证过 = 真实的薄弱/断裂信号，按正常规则打分。
-  Self-Check (your own project): evidence = the answers given by the creator. Cannot answer / never verified = a real weak/broken signal; score by normal rules.
+- 自检（自己项目）：证据 = 创造者的回答。答不出、没想清楚 = 真实的薄弱/断裂信号，按深度封顶规则打分。
+  Self-Check (your own project): evidence = the answers given by the creator. Cannot answer / not thought through = a real weak/broken signal; score with depth caps.
 
-## 链路模型（6 环节）The Loop Model (6 stages)
-真实需求 → 价值主张 → 获客 → 付费转化 → 交付与体验 → 复购与传播
-Real Demand → Value Proposition → Acquisition → Paid Conversion → Delivery & Experience → Retention & Referral
+## 链路模型（7 环节）The Loop Model (7 stages)
+市场调研 → 真实需求 → 价值主张 → 获客 → 付费转化 → 交付与体验 → 复购与传播
+Market Research → Real Demand → Value Proposition → Acquisition → Paid Conversion → Delivery & Experience → Retention & Referral
 
 参考框架（仅用于补充判断要点，不改变本模型）Reference frameworks (supplement the checks only; they do not change this model):
 - 精益画布 Lean Canvas：Problem, Customer Segments, Value Proposition, Channels, Revenue Streams, Unfair Advantage
@@ -17,96 +17,131 @@ Real Demand → Value Proposition → Acquisition → Paid Conversion → Delive
 - 增长飞轮 Growth Flywheel：留存-推荐-复购 的自我强化循环 a self-reinforcing loop of retention, referral and repurchase
 
 ## 自检提问清单 Self-Check Questions
-自检模式（或项目检查中确认是自己的项目后）按环节提问，默认一次一个问题；答不上来就记为「未验证/未设计」并继续。
-In Self-Check mode (or after confirming the project is yours during inspection), ask stage by stage, one question at a time by default; unanswered questions are recorded as "unverified/undesigned" and you continue.
+自检模式（或项目检查中确认是自己的项目后）按环节提问，默认一次一个问题；答不上来就记为「未想清楚/未设计」并继续。
+In Self-Check mode (or after confirming the project is yours during inspection), ask stage by stage, one question at a time by default; unanswered questions are recorded as "not thought through / undesigned" and you continue.
 
-### 1. 真实需求 Real Demand
-- 你的目标用户是谁？请具体到人群和场景。 Who is your target user? Be specific about the segment and scenario.
-- 他们现在怎么解决这个问题？痛有多频繁、多强烈？ How do they solve this problem today? How frequent and severe is the pain?
-- 你访谈/调研过几个真实用户？他们怎么说的？ How many real users have you interviewed or surveyed? What did they say?
+### 1. 市场调研 Market Research（先跑调研，再谈需求；不要求访谈，桌面研究即可）
+- 是否已对目标市场做了全网桌面研究？用户画像、群体范围、痛点、付费意愿、付费习惯、竞品、市场规模、渠道分布，8 项指标查证了吗？ Has desk research (web search) been done for the target market? Persona, market scope, pain points, willingness to pay, payment habits, competitors, market size, channels — all 8 metrics verified?
+- 有 API key 时：运行 `python references/market_research.py --product "<产品描述>"`，程序自动联网搜索并按指标打分、附证据来源。 With an API key: run the script for live search and per-metric scores with evidence sources.
+- 无 API key 时：程序生成检索计划与 evidence_fill_form.json，由 agent 用自身联网搜索补完证据，再运行 `--score-only` 计算分数。 Without an API key: the program generates a search plan and evidence_fill_form.json; the agent completes evidence with its own web search, then runs `--score-only`.
+- 调研结果与你的产品主张一致吗？不一致的地方就是风险点。 Do the findings agree with your product claims? Discrepancies are risk points.
+
+### 2. 真实需求 Real Demand（先对齐，再谈其他）
+- 你的目标用户处于什么状态：还没决定要不要做？决定做了但没选方案？已在用方案但不满意？ What state is your target user in: undecided about doing it? decided but choosing a solution? already using one but dissatisfied?
+- 相邻人群区分了吗？「还没决定要不要出海」和「已决定出海、在选工具」需求不同，你服务哪一类？ Are adjacent segments distinguished? "Undecided about going overseas" and "decided, choosing a tool" have different needs — which one do you serve?
+- 他们现在怎么解决？在哪里讨论、搜索（社区 / 竞品评论 / 公开报告）？ How do they solve it today? Where do they discuss or search (communities / competitor reviews / public reports)?
+- 你去社区、竞品评论或公开报告核对过需求吗？（桌面研究即可，不要求访谈） Have you cross-checked demand via communities, competitor reviews or public reports? (desk research is enough; interviews are not required)
 - 他们愿意为「解决这个问题」付费吗？验证过吗？ Would they pay to solve it? Have you verified this?
 - 市场有多大？替代方案和竞争对手有哪些？ How big is the market? What are the alternatives and competitors?
 
-### 2. 价值主张 Value Proposition
-- 一句话说清：为谁、解决什么、为什么是你？ Say it in one sentence: for whom, what problem, why you?
+### 3. 价值主张 Value Proposition
+- 一句话说清：为谁（含决策状态）、解决什么、为什么是你？ Say it in one sentence: for whom (incl. decision state), what problem, why you?
 - 相比现有方案（包括「什么都不做」），你的独特优势是什么？ Compared with existing solutions (including "do nothing"), what is your unique edge?
 - 用户 30 秒内能感知价值吗？ Can users perceive the value within 30 seconds?
 - 你有什么别人不易抄走的东西（技术、资源、渠道、数据、网络效应）？ What is hard to copy (tech, resources, channels, data, network effects)?
 
-### 3. 获客 Acquisition
-- 第一批用户从哪里来？具体渠道是什么？ Where will the first users come from? Which exact channel?
+### 4. 获客 Acquisition
+- 第一批用户在哪里？具体渠道是什么（他们真的会去的地方）？ Where are the first users? Which exact channel (where they actually are)?
 - 渠道能规模化吗？获客成本（CAC）估算过吗？ Is the channel scalable? Have you estimated CAC?
 - 有落地页 / 试用入口吗？从知道到用上的路径通了吗？ Is there a landing page / trial entry? Is the path from awareness to usage complete?
 - 获客方式适合你的产品形态吗（PLG / SLG / 渠道合作）？ Does acquisition fit your product shape (PLG / SLG / partnerships)?
 
-### 4. 付费转化 Conversion & Monetization
+### 5. 付费转化 Conversion & Monetization
+- 用户为什么付费、在什么节点付费？ Why do users pay, and at which moment?
 - 定价与商业模式定了吗（订阅 / 买断 / 免费增值 / 按用量）？ Pricing and business model decided (subscription / one-time / freemium / usage-based)?
-- 免费与付费的边界在哪？用户为什么升级？ Where is the free/paid line? Why would users upgrade?
+- 免费与付费的边界在哪？升级理由充分吗？ Where is the free/paid line? Is the upgrade reason strong?
 - 付费入口与支付流程设计好了吗？ Is the payment entry and checkout flow designed?
-- 有付费意愿的证据吗（waitlist、预购、已有付费用户、对标价格）？ Any evidence of willingness to pay (waitlist, pre-orders, paying users, benchmark prices)?
+- 有付费意愿的间接证据吗（对标价格、同类付费产品、社区反馈）？ Any indirect willingness-to-pay evidence (benchmark prices, similar paid products, community feedback)?
 - 单位经济算过吗（LTV/CAC、毛利率）？ Unit economics estimated (LTV/CAC, gross margin)?
 
-### 5. 交付与体验 Delivery & Activation
+### 6. 交付与体验 Delivery & Activation
 - 用户第一次使用后，多久能感受到核心价值（Aha moment）？ After first use, how soon do users feel the core value (aha moment)?
 - 新手引导 / 模板有吗？ Onboarding / templates?
-- 激活指标定义了吗？现在数值是多少？ Activation metric defined? Current value?
+- 激活指标定义了吗？ Activation metric defined?
 - 客服 / FAQ / 故障响应怎么安排？ Support / FAQ / incident response?
 
-### 6. 复购与传播 Retention & Referral
+### 7. 复购与传播 Retention & Referral
 - 什么机制让用户回来（内容更新、习惯循环、续费提醒、会员体系）？ What brings users back (content updates, habit loops, renewal reminders, membership)?
 - 什么机制让用户帮你传播（推荐奖励、可炫耀点、分享路径）？ What makes users spread the word (referral rewards, shareable wins, sharing paths)?
 - 流失预警和召回怎么做？ Churn warning and win-back?
 - 留存指标定义了吗（留存率、复购率、NPS）？ Retention metrics defined (retention rate, repurchase rate, NPS)?
 
-## 打分细则（每环节 0-10 分）Scoring (0-10 per stage)
-- 9-10 健康强闭环：有明确证据（数据/用户/收入）且设计与执行到位 Healthy, strong loop: clear evidence (data/users/revenue) with sound design and execution
-- 7-8 基本打通：设计清晰、有部分证据、可执行 Basically closed: clear design, some evidence, executable
-- 5-6 薄弱：有想法或有设计，但证据不足或明显短板 Weak: has ideas or design but insufficient evidence or clear gaps
-- 3-4 仅有想法：无设计或无证据 Idea only: no design or no evidence
-- 0-2 缺失：该环节完全没有信息或设计 Missing: no information or design at all for this stage
+## 打分细则（每环节 0-10 分，按判断深度）Scoring (0-10 per stage, by judgment depth)
+分数 = 定义深度 × 外部核对。判断是否严格，看的是「想得够不够深、需求有没有对齐」，而不是有没有访谈或使用数据——个人做工具在起步阶段没有这些是正常的。
+Score = definition depth × external cross-checking. Strictness is about how deeply and precisely the creator has thought (aligned demand), not whether interviews/data exist — a solo founder naturally has no interviews or usage data at the start.
 
-证据不足时最高给 3 分，并在报告中列出需补充的信息。
-Without evidence, cap the stage at 3 and list what information is needed in the report.
+**深度三档 Depth tiers:**
+- 深度对齐 aligned（strong）：目标用户精确到「人群 + 决策状态 + 场景」，相邻人群已区分，需求与方案对齐；并经外部核对（桌面研究：社区讨论 / 竞品评论 / 公开报告，不要求访谈）→ 可评 7-10
+  Target user precise (segment + decision state + scenario), adjacent segments distinguished, demand aligned with the solution, and cross-checked externally (desk research: community discussions / competitor reviews / public reports; interviews not required) → 7-10 allowed
+- 定义清晰 unverified（weak）：定义清晰但未做任何外部核对 → 最高 6 分
+  Clearly defined but no external cross-checking → cap at 6
+- 模糊/未对齐 vague（none）：说不清用户是谁，或相邻人群混淆（如「还没决定要不要出海」与「已决定出海、在选方案」混为一谈），或需求与方案不匹配 → 最高 3 分
+  Cannot state who the user is, adjacent segments conflated (e.g., mixing "undecided about going overseas" with "decided, choosing a solution"), or demand mismatched with the solution → cap at 3
+
+**各环节深度门槛 Depth gates per stage（不满足直接封顶）:**
+市场调研 Market Research：未运行调研程序或证据收集未完成 → ≤3；已调研但证据少 / 主要指标未覆盖 → ≤6
+- 真实需求 Real Demand：目标用户模糊或相邻人群未区分 → ≤4；未定义决策状态/使用场景 → ≤6 Target user vague or adjacent segments not distinguished → ≤4; decision state / scenario undefined → ≤6
+- 价值主张 Value Proposition：不能一句话说清「为谁（含决策状态）解决什么、为什么是你」→ ≤4；无差异化 → ≤6 Cannot state in one sentence "for whom (incl. decision state), what problem, why you" → ≤4; no differentiation → ≤6
+- 获客 Acquisition：说不出目标用户在哪、渠道与人群不匹配 → ≤4；有渠道但无落地页/入口 → ≤6 Cannot say where the target users are or channel mismatched → ≤4; channel exists but no landing page / entry → ≤6
+- 付费转化 Paid Conversion：说不出用户为什么/何时付费 → ≤4；无定价设计 → ≤3 Cannot explain why/when users pay → ≤4; no pricing design → ≤3
+- 交付与体验 Delivery & Experience：未定义首次使用激活路径 → ≤5 No first-use activation path defined → ≤5
+- 复购与传播 Retention & Referral：无任何留存或传播设计 → ≤2 No retention or referral design → ≤2
+
+设计档参考 Design band reference（在封顶内 within caps）:
+- 9-10 强闭环：深度对齐 + 核对到位 + 执行到位 strong loop: aligned, cross-checked and executed
+- 7-8 基本打通：深度对齐且已核对 verified alignment → executable
+- 5-6 有设计但未核对 design exists but not cross-checked
+- 3-4 仅有想法，模糊或未对齐 idea only, vague or misaligned
+- 0-2 缺失 missing
 
 ## 每环节检查项 Per-Stage Checklists
 
-### 1. 真实需求 Real Demand（最难判断 → 要求严格证据 hardest to judge → strict evidence required）
-- 目标用户是否具体（细分人群 + 使用场景）？ Is the target user specific (segment + scenario)?
-- 痛点是否真实、频繁、强烈？有无用户访谈 / 调研 / 社区反馈 / 数据佐证？ Is the pain real, frequent and intense? Any interviews / surveys / community feedback / data?
+### 1. 市场调研 Market Research（证据先行 evidence first）
+- 8 项指标是否都查证过：用户画像、群体范围、痛点需求、付费意愿、付费习惯、竞品分析、市场规模、渠道分布？ All 8 metrics researched: user persona, market scope, pain points, willingness to pay, payment habits, competitors, market size, channels?
+- 证据是否有来源 URL 可追溯？是否包含具体数字/实体（人群规模、定价、增长率）？ Evidence traceable with URLs? Concrete numbers/entities (segment size, pricing, growth rates)?
+- 调研结论与产品主张是否一致？矛盾点是否被记录？ Do findings match the product claims? Discrepancies recorded?
+- 是否区分「搜索到的行业信息」与「该产品特有的证据」？ Industry-level findings vs product-specific evidence distinguished?
+- 参考 Reference：市场调研引擎 references/market_research.py
+
+### 2. 真实需求 Real Demand（最难判断 → 先看对齐 hardest to judge → alignment first）
+- 目标用户是否具体（细分人群 + 决策状态 + 使用场景）？ Is the target user specific (segment + decision state + scenario)?
+- 是否区分相邻但需求不同的人群（如「还没决定要不要做」与「已决定做、在选方案」）？ Are adjacent segments with different needs distinguished (e.g., "undecided" vs "decided, choosing a solution")?
+- 痛点是否具体到频率与场景？有无社区反馈 / 竞品评论 / 公开数据佐证？ Is the pain specific to frequency and scenario? Any community feedback / competitor reviews / public data?
 - 是否区分「想要」与「愿意付费解决」？ Does it distinguish "want it" from "willing to pay"?
 - 是否了解市场容量与竞争格局（TAM/SAM、替代方案）？ Market size and competition known (TAM/SAM, alternatives)?
 - 参考 Reference：精益画布 Lean Canvas Problem / Customer Segments
 
-### 2. 价值主张 Value Proposition
-- 能否一句话说清「为谁、解决什么、为什么是你」？ Can you say in one sentence "for whom, what problem, why you"?
+### 3. 价值主张 Value Proposition
+- 能否一句话说清「为谁（含决策状态）、解决什么、为什么是你」？ Can you say in one sentence "for whom (incl. decision state), what problem, why you"?
 - 与替代方案（包括「什么都不做」）相比是否有独特优势？ Unique advantage vs alternatives (including "do nothing")?
 - 用户能否在 30 秒内感知价值？ Can users perceive the value in 30 seconds?
 - 是否有不公平优势（技术、资源、渠道、网络效应、数据）？ Any unfair advantage (tech, resources, channels, network effects, data)?
 - 参考 Reference：精益画布 Lean Canvas Value Proposition / Unfair Advantage；价值主张画布 Value Proposition Canvas
 
-### 3. 获客 Acquisition
-- 主获客渠道是否明确，且与目标用户匹配？ Is the main channel clear and matched to the target user?
+### 4. 获客 Acquisition
+- 主获客渠道是否明确，且与目标用户（他们实际在的地方）匹配？ Is the main channel clear and matched to where the target users actually are?
 - 渠道是否可规模化？获客成本（CAC）有无估算？ Is the channel scalable? CAC estimated?
 - 有无落地页 / 试用入口 / 激活路径？ Any landing page / trial entry / activation path?
 - 是否考虑 PLG / SLG / 混合策略？ PLG / SLG / hybrid strategy considered?
 - 参考 Reference：AARRR Acquisition；精益画布 Lean Canvas Channels
 
-### 4. 付费转化 Conversion & Monetization（最难判断 → 要求严格证据 hardest to judge → strict evidence required）
+### 5. 付费转化 Conversion & Monetization（最难判断 → 先看付费逻辑 hardest to judge → payment logic first）
+- 用户为什么付费、在什么节点付费？ Why do users pay, and at which moment?
 - 定价与商业模式是否明确（订阅 / 买断 / 免费增值 / 按用量）？ Pricing and business model clear (subscription / one-time / freemium / usage-based)?
 - 免费与付费边界是否清晰、升级理由是否充分？ Free/paid boundary clear, upgrade reasons strong?
 - 转化路径有无明确的付费触点？支付流程是否顺畅？ Clear payment touchpoints in the conversion path? Smooth checkout?
-- 有无付费意愿证据（waitlist、预购、已有付费用户、对标价格）？ Willingness-to-pay evidence (waitlist, pre-orders, paying users, benchmark prices)?
+- 有无付费意愿的间接证据（对标价格、同类付费产品、社区反馈）？ Indirect willingness-to-pay evidence (benchmark prices, similar paid products, community feedback)?
 - 单位经济是否测算过（LTV/CAC、毛利率）？ Unit economics estimated (LTV/CAC, gross margin)?
 - 参考 Reference：商业模式画布 Business Model Canvas Revenue Streams；AARRR Revenue
 
-### 5. 交付与体验 Delivery & Activation
+### 6. 交付与体验 Delivery & Activation
 - 核心价值能否在首次使用后快速兑现（Aha moment）？ Can the core value land quickly after first use (aha moment)?
 - 上手引导 / 模板是否降低学习成本？ Do onboarding / templates lower the learning cost?
 - 有无激活指标定义与监控？ Activation metric defined and monitored?
 - 服务与支持（客服、FAQ、故障响应）是否到位？ Support (CS, FAQ, incident response) in place?
 - 参考 Reference：AARRR Activation
 
-### 6. 复购与传播 Retention & Referral（最容易断 → 无设计即断裂 breaks most easily → no design means broken）
+### 7. 复购与传播 Retention & Referral（最容易断 → 无设计即断裂 breaks most easily → no design means broken）
 - 有无留存机制（内容更新、习惯循环、续费提醒、会员体系）？ Retention mechanics (content updates, habit loops, renewal reminders, membership)?
 - 有无传播设计（推荐奖励、分享动机、可炫耀点、社交传播路径）？ Referral design (rewards, sharing motives, bragging points, social paths)?
 - 有无流失预警与召回路径？ Churn warning and win-back paths?
@@ -119,21 +154,23 @@ Without evidence, cap the stage at 3 and list what information is needed in the 
   - 链路打通 Loop Closed：全部环节 ≥7 且平均分 ≥7.5 all stages ≥7 and average ≥7.5
   - 接近打通 Nearly Closed：无环节低于 5，平均分 ≥7，但存在低于 7 的环节 no stage <5, average ≥7, but some stage <7
   - 未打通 Not Closed：任一环节低于 5，或平均分低于 7 any stage <5, or average <7
+- 注意：7 分以上必须「深度对齐 + 外部核对」。因此「链路打通」意味着有核对支撑的对齐闭环，而非纸面设计。 Note: 7+ requires aligned, externally cross-checked demand, so a "Loop Closed" verdict means an evidence-backed loop, not paper design.
 - 他人项目 Projects of others：结论前注明「基于公开证据」，低分环节标注「证据不足」或「设计缺失」。 Prefix the verdict with "based on public evidence"; mark low stages as "insufficient evidence" or "missing design".
 - 行动优先级 Action priority：断裂环节（分数低者先）→ 薄弱环节（分数低者先）→ 若全部健康，优先寻找复购与传播的增长杠杆。 Broken stages (lowest score first) → weak stages (lowest first) → if all healthy, prioritize growth levers in Retention & Referral.
 
 ## 打分计算器 Scoring Calculator（可选 optional）
-为保证打分与判定一致，可先用脚本校验：将六环分数写入 JSON 文件，运行 `python references/scoring.py <file>`，脚本输出平均分、逐环状态、结论与行动优先级；加 `--json` 可输出机器可读结果。
+为保证打分与判定一致，可先用脚本校验：将七环分数写入 JSON 文件，运行 `python references/scoring.py <file>`，脚本输出平均分、逐环状态、结论与行动优先级；加 `--json` 可输出机器可读结果。
 To keep scoring and verdicts consistent, verify with the script first: write the six scores to a JSON file and run `python references/scoring.py <file>`; it outputs the average, per-stage status, verdict and action priority. Add `--json` for machine-readable output.
-JSON 必须包含 scores 对象，键为六环：real_demand / value_proposition / acquisition / paid_conversion / delivery / retention_referral，取值 0-10；evidence 可选（verified / partial / none），为 none 且分数 >3 时自动封顶 3 并警告。
-The JSON must contain a scores object with the six keys: real_demand / value_proposition / acquisition / paid_conversion / delivery / retention_referral, values 0-10; evidence is optional (verified / partial / none); if evidence is none and the score is above 3, the script caps it at 3 with a warning.
+JSON 必须包含 scores 对象，键为七环：market_research / real_demand / value_proposition / acquisition / paid_conversion / delivery / retention_referral，取值 0-10；evidence 可选（strong / weak / none，兼容 verified / partial），含义为定义深度与核对强度。封顶：none→3、weak/partial→6、strong/verified 不限。
+The JSON must contain a scores object with the seven keys: market_research / real_demand / value_proposition / acquisition / paid_conversion / delivery / retention_referral, values 0-10; evidence is optional (strong / weak / none; verified / partial accepted as aliases) and means definition depth & cross-checking strength. Caps: none→3, weak/partial→6, strong/verified unlimited.
 
 ## 修复模式工作法 Repair Mode
 修复按「断裂 → 薄弱 → 增长杠杆」顺序逐项进行。AI 不直接修改用户产品，而是为每项输出**完整修改方案**：目标 → 具体改动 → 实施步骤 → 验收标准；用户确认后自行执行，执行完成可要求复检。
 Fixes proceed item by item in the order "broken → weak → growth levers". The AI does not modify the product; for each item it outputs a **complete fix plan**: goal → concrete changes → implementation steps → acceptance criteria; the user executes after confirming and may request a re-check when done.
 各环节常见修复杠杆（作为方案内容素材）Common repair levers per stage (material for the plans):
-- 真实需求 Real Demand：用户访谈提纲（5-8 问）、最小付费意愿验证（waitlist/预售）、替代方案调研清单 interview script (5-8 questions), minimum willingness-to-pay test (waitlist/pre-sale), alternatives research checklist
-- 价值主张 Value Proposition：一句话价值主张模板（为谁/解决什么/为什么是你）、落地页首屏文案、与替代方案对比表 one-sentence value proposition template, landing-page above-the-fold copy, comparison table vs alternatives
+市场调研 Market Research：配置搜索 API key 后重跑调研（TAVILY_API_KEY / SERPER_API_KEY / BING_API_KEY）；补齐缺失指标；把行业数据落进画像、定价与渠道选择
+- 真实需求 Real Demand：目标人群与决策状态定义模板、相邻人群区分表、桌面研究清单（社区/竞品/公开报告） target-segment & decision-state definition template, adjacent-segment distinction table, desk-research checklist (communities/competitors/public reports)
+- 价值主张 Value Proposition：一句话价值主张模板（为谁含决策状态/解决什么/为什么是你）、落地页首屏文案、与替代方案对比表 one-sentence value proposition template, landing-page above-the-fold copy, comparison table vs alternatives
 - 获客 Acquisition：种子用户获取计划（渠道 + 话术 + 数量目标）、落地页结构、内容选题清单 seed-user acquisition plan (channels + scripts + targets), landing page structure, content topic list
 - 付费转化 Paid Conversion：3 档定价方案、免费/付费边界定义、支付流程清单、LTV/CAC 测算表 3-tier pricing, free/paid boundary, checkout checklist, LTV/CAC model
 - 交付与体验 Delivery & Experience：激活路径设计（3 步内兑现核心价值）、新手引导文案、激活指标定义 activation path (core value within 3 steps), onboarding copy, activation metric definition

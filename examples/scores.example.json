@@ -3,19 +3,21 @@
   "mode": "selfcheck",
   "ownership": "own",
   "evidence": {
-    "real_demand": "verified",
-    "value_proposition": "partial",
-    "acquisition": "partial",
-    "paid_conversion": "partial",
-    "delivery": "partial",
+    "market_research": "weak",
+    "real_demand": "weak",
+    "value_proposition": "weak",
+    "acquisition": "weak",
+    "paid_conversion": "weak",
+    "delivery": "weak",
     "retention_referral": "none"
   },
   "scores": {
-    "real_demand": 8,
-    "value_proposition": 7,
+    "market_research": 5,
+    "real_demand": 6,
+    "value_proposition": 6,
     "acquisition": 4,
-    "paid_conversion": 5,
-    "delivery": 6,
+    "paid_conversion": 4,
+    "delivery": 5,
     "retention_referral": 2
   }
 }

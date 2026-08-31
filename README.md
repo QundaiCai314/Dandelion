@@ -8,7 +8,8 @@ A skill for any AI agent: assess whether a **digital product / SaaS / software /
 
 ## What It Does
 - **Two modes**: ① Self-Check — creators review their own product via one-question-at-a-time Q&A; ② Project Inspection — directly inspect a GitHub repo / local project / product description and produce a report.
-- Six-stage loop model: Real Demand → Value Proposition → Acquisition → Paid Conversion → Delivery & Experience → Retention & Referral
+- **Market research first**: every diagnosis starts with a web desk-research pass — `references/market_research.py` searches the web for 8 market metrics (user persona, market scope, pain points, willingness to pay, payment habits, competitors, market size, channels) and scores each 0-10 with evidence sources; without an API key it degrades to a search plan + agent-filled evidence form
+- Seven-stage loop model: Market Research → Real Demand → Value Proposition → Acquisition → Paid Conversion → Delivery & Experience → Retention & Referral
 - Each stage scored 0-10, with clear verdict rules: **Loop Closed / Nearly Closed / Not Closed**
 - Full report: Diagnosis → Scores → Problem List → Fix Plan → Action Plan
 - When inspection finds problems, the skill asks **"Is this your own project?"**: for others' projects it reports based on public evidence and flags missing evidence; for your own, it asks you to supply materials or answers questions one by one, then re-scores
@@ -16,6 +17,37 @@ A skill for any AI agent: assess whether a **digital product / SaaS / software /
 - **Export**: generates a shareable Markdown report (`business-chain-report.md`)
 - Evidence-first: stages without evidence are capped at 3 and flagged; no guessing
 - **Scoring calculator**: optional `references/scoring.py` verifies the average, verdict and action priority for consistent results
+- **Repair plans**: after diagnosis, each problem gets a complete fix plan (goal, changes, steps, acceptance criteria) for YOU to execute
+
+## Market Research Engine
+Every diagnosis starts with a market-research pass. The engine `references/market_research.py` searches the web and scores 8 metrics (each 0-10, machine evidence scores):
+
+| Metric | What it verifies |
+| --- | --- |
+| User Persona | target segment exists, is active, discussed publicly |
+| Market Scope | segment size can be bounded and estimated |
+| Pain Points | pain is discussed publicly, concrete scenario/frequency |
+| Willingness to Pay | paid products exist, pricing benchmarks, paid discussions |
+| Payment Habits | payment methods, subscription habits, price sensitivity |
+| Competitors | number, leaders, differentiation space |
+| Market Size | TAM/SAM, public data and trends |
+| Channels | where target users gather |
+
+**Search backends** (auto-detected in order; set any one):
+- `TAVILY_API_KEY` — https://tavily.com (recommended)
+- `SERPER_API_KEY` — https://serper.dev (Google search)
+- `BING_API_KEY` — Bing Web Search API
+
+Run:
+```
+python references/market_research.py --product "one-line product description"
+```
+
+**No API key?** The script degrades automatically: it writes a search plan + `evidence_fill_form.json`; the agent completes the evidence with its own web search, then scores:
+```
+python references/market_research.py --score-only evidence_fill_form.json
+```
+Scores combine result count + credible sources + concrete numbers. The agent may calibrate with `--calibrate <file>` after reading the actual results.
 
 ## Install
 Copy this repository directory (default folder name `Dandelion`, containing SKILL.md) into your agent's skills directory.
@@ -40,6 +72,7 @@ Export: "Export the report to a file"
 
 ## Structure
 - SKILL.md — main skill file (trigger description, two-mode workflow, repair & export workflow, core rules)
+- references/market_research.py — market research engine (multi-backend web search: Tavily / Serper / Bing; no-key fallback generates a search plan + evidence fill form)
 - references/framework.md — loop model, self-check questions, per-stage checklists, scoring, verdict rules, repair playbook & re-check rules
 - references/output-template.md — report template & export notes
 - references/scoring.py — optional scoring calculator (average, verdict, action priority)
@@ -53,8 +86,12 @@ Export: "Export the report to a file"
 - Not closed: any stage <5, or average <7
 - Real Demand and Paid Conversion demand strict evidence; Retention & Referral with zero design is broken outright
 - Others' projects: verdict is labeled "based on public evidence"; your own project: unanswered/unverified counts as weak
+- Market Research: no research ≤3; researched but thin ≤6; 7+ requires all 8 metrics backed by evidence consistent with the product claims
+- Deep judgment: vague/misaligned ≤3; clearly defined but not cross-checked ≤6; 7+ requires aligned demand cross-checked via desk research (interviews/data not required); Retention & Referral with no design ≤2
 
 ## License
 Released under the [MIT License](LICENSE).
+
+
 
 

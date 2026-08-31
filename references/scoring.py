@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Dandelion 商业链路诊断打分计算器 | Scoring calculator.
+"""Dandelion 商业链路诊断打分计算器（严格版）| Scoring calculator (strict).
 
 用法 Usage:
     python scoring.py <scores.json> [--json]
@@ -10,10 +10,11 @@
   "product": "可选 optional",
   "mode": "selfcheck | inspection 可选 optional",
   "ownership": "own | other 可选 optional",
-  "evidence": {            # 可选 optional: "verified" | "partial" | "none"
+  "evidence": {            # 可选 optional: "strong" | "weak" | "none"（兼容 verified/partial）
     "acquisition": "none"
   },
   "scores": {
+    "market_research": 7,
     "real_demand": 8,
     "value_proposition": 7,
     "acquisition": 4,
@@ -23,18 +24,25 @@
   }
 }
 
-规则 Rules（与 references/framework.md 一致）:
+深度封顶 Depth caps（与 references/framework.md 一致；evidence 字段含义 = 定义深度与核对强度 definition depth & cross-checking strength）:
+- strong/verified：深度对齐 + 已外部核对，不封顶 no cap，可评 7-10
+- weak/partial：定义清晰但未核对，最高 6 分 cap at 6
+- none：模糊/未对齐，最高 3 分 cap at 3（未标注 evidence 的环节按 none 处理 stages without evidence default to none）
+
+规则 Rules:
+- market_research 的 evidence 含义: strong=已联网/填表完成调研且证据充分; weak=已调研但证据少; none=未做调研（按深度封顶处理）
+  For market_research, evidence means: strong=research done (live or agent-filled) with solid evidence; weak=research done but thin; none=no research (depth caps apply)
 - 每环节 Per stage: >=7 健康 healthy, 5-6.9 薄弱 weak, <5 断裂 broken
 - 链路打通 Loop Closed: 全部 >=7 且平均分 >=7.5 all stages >=7 and average >=7.5
 - 接近打通 Nearly Closed: 无环节 <5 且平均分 >=7 no stage <5 and average >=7
 - 未打通 Not Closed: 任一环节 <5 或平均分 <7 any stage <5 or average <7
-- evidence 为 none 且分数 >3 时自动封顶 3 并警告 if evidence is none and score > 3, cap to 3 with a warning
 """
 
 import json
 import sys
 
 STAGES = [
+    ("market_research", "市场调研 Market Research"),
     ("real_demand", "真实需求 Real Demand"),
     ("value_proposition", "价值主张 Value Proposition"),
     ("acquisition", "获客 Acquisition"),
@@ -42,6 +50,8 @@ STAGES = [
     ("delivery", "交付与体验 Delivery & Experience"),
     ("retention_referral", "复购与传播 Retention & Referral"),
 ]
+
+EVIDENCE_CAP = {"none": 3, "weak": 6, "partial": 6, "verified": None, "strong": None}
 
 
 def main(argv):
@@ -79,9 +89,13 @@ def main(argv):
         if value < 0 or value > 10:
             print("错误 Error: %s 分数超出 0-10 out of range: %r" % (label, raw))
             return 1
-        if evidence.get(key) == "none" and value > 3:
-            warnings.append("%s：证据不足 none，%g 分封顶为 3 (score capped to 3)" % (label, value))
-            value = 3.0
+        ev = evidence.get(key)
+        if ev not in EVIDENCE_CAP:
+            ev = "none"  # 缺省视为无验证 default to none
+        cap = EVIDENCE_CAP[ev]
+        if cap is not None and value > cap:
+            warnings.append("%s：证据档 %s，%g 分封顶为 %d (score capped)" % (label, ev, value, cap))
+            value = float(cap)
         normalized[key] = value
 
     values = [normalized[k] for k, _ in STAGES]
@@ -131,7 +145,7 @@ def main(argv):
         print(json.dumps(out, ensure_ascii=False, indent=2))
         return 0
 
-    print("=== Dandelion 商业链路诊断 Scoring Calculator ===")
+    print("=== Dandelion 商业链路诊断 Scoring Calculator (strict) ===")
     if data.get("product"):
         print("产品 Product : %s" % data["product"])
     meta = []
@@ -152,7 +166,7 @@ def main(argv):
     print("结论 Verdict   : %s%s" % (verdict, note))
     if warnings:
         print()
-        print("警告 Warnings:")
+        print("警告 Warnings（证据封顶 evidence caps applied）:")
         for w in warnings:
             print("  - %s" % w)
     print()
@@ -168,4 +182,5 @@ def main(argv):
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
+
 
