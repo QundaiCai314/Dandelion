@@ -93,8 +93,8 @@ def is_specific(text):
 
 
 def default_queries(product, target_user, lang):
-    kw = product[:20]
-    kw_en = re.sub(r"[^\w\s]", " ", product)[:20].strip()
+    kw = product[:60]
+    kw_en = re.sub(r"[^\w\s]", " ", product)[:60].strip()
     q = []
     if lang == "zh":
         q = [
@@ -124,7 +124,7 @@ def default_queries(product, target_user, lang):
         q = [(mid, list(zh) + en_queries) for (mid, zh, en_queries) in
              [(m[0], zhq, dict(en)[m[0]]) for m, zhq in q]]
     if target_user:
-        t = target_user[:24]
+        t = target_user[:60]
         q[0][1].insert(0, f"{t} 痛点 讨论")
         q[2][1].insert(0, f"{t} problems community")
     return q
