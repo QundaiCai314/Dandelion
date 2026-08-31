@@ -17,7 +17,6 @@ A skill for any AI agent: assess whether a **digital product / SaaS / software /
 - **Export**: generates a shareable Markdown report (`business-chain-report.md`)
 - Evidence-first: stages without evidence are capped at 3 and flagged; no guessing
 - **Scoring calculator**: optional `references/scoring.py` verifies the average, verdict and action priority for consistent results
-- **Repair plans**: after diagnosis, each problem gets a complete fix plan (goal, changes, steps, acceptance criteria) for YOU to execute
 
 ## Market Research Engine
 Every diagnosis starts with a market-research pass. The engine `references/market_research.py` searches the web and scores 8 metrics (each 0-10, machine evidence scores):
@@ -57,7 +56,9 @@ python references/market_research.py --product "one-line product description"
 ```
 python references/market_research.py --score-only evidence_fill_form.json
 ```
-Scores combine result count + credible sources + concrete numbers. The agent may calibrate with `--calibrate <file>` after reading the actual results.
+Scores combine result count + credible sources + concrete numbers + a weak relevance discount. The agent may calibrate with `--calibrate <file>` after reading the actual results.
+Re-running never wipes a filled evidence form: evidence is preserved and only queries refresh; a form belonging to another product is refused unless `--force`.
+Paths are relative to the skill directory — resolve the absolute path (e.g. `<skill_dir>/references/market_research.py`) when your working directory is not the skill root. Requires Python 3.8+.
 
 ## Install
 Copy this repository directory (default folder name `Dandelion`, containing SKILL.md) into your agent's skills directory.
@@ -98,6 +99,10 @@ Export: "Export the report to a file"
 - Others' projects: verdict is labeled "based on public evidence"; your own project: unanswered/unverified counts as weak
 - Market Research: no research ≤3; researched but thin ≤6; 7+ requires all 8 metrics backed by evidence consistent with the product claims
 - Deep judgment: vague/misaligned ≤3; clearly defined but not cross-checked ≤6; 7+ requires aligned demand cross-checked via desk research (interviews/data not required); Retention & Referral with no design ≤2
+
+## Tests & Version
+- `python tests/test_sanity.py` — sanity tests for the scoring heuristics and the calculator (stdlib only, no third-party dependencies)
+- Version: 1.1.0
 
 ## License
 Released under the [MIT License](LICENSE).

@@ -24,6 +24,7 @@ Runs desk research on the web for a digital product and outputs evidence and
     --score-only <path>     不联网，仅用已填写的证据表单计算分数
     --calibrate <path>      用人工校准 JSON {metric_id: score} 覆盖机器分
     --no-search             不联网，仅生成检索计划与证据表单
+    --force                 覆盖已有的已填证据表单（默认保留；产品不同时拒绝覆盖）
 
 搜索后端 Search backends (按顺序自动选择，读环境变量):
     TAVILY_API_KEY   https://tavily.com            (推荐 recommended)
@@ -44,6 +45,8 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+
+__version__ = "1.1.0"
 
 # ---------------------------------------------------------------------------
 # 指标定义 Metrics
@@ -75,26 +78,71 @@ CREDIBLE_DOMAINS = (
     "indiehackers.com", "reddit.com", "quora.com", "zhihu.com", "36kr.com",
     "ithome.com", "sspai.com", "play.google.com", "apps.apple.com",
     "buildin.ai", "a16z.com", "sequoiacap.com", "indexventures.com",
+    "wsj.com", "ft.com", "economist.com", "nytimes.com", "theinformation.com",
+    "mckinsey.com", "bcg.com", "deloitte.com", "idc.com",
+    "oecd.org", "imf.org", "worldbank.org",
+    "jiemian.com", "thepaper.cn", "caixin.com", "tmtpost.com",
+    "sensortower.com", "semrush.com", "ahrefs.com",
 )
 
 SPECIFIC_RE = re.compile(
-    r"(\d+(\.\d+)?\s*(%|万|亿|k|m|b|美元|人民币|元|\$|€|£|users|million|billion))"
+    r"(\d+(\.\d+)?\s*(%|万|亿|k|m|b|美元|人民币|元|\$|€|£|users|million|billion|人|家|款))"
+    r"|([一二三四五六七八九两]\s*成)"
     r"|(\$|¥|￥)\s?\d+|(\d+\s*元)|(订阅|月费|年费|定价|pricing|price|paid|付费|免费)"
 )
 
 
+def _host_of(url):
+    """Extract lowercase hostname from a URL; returns '' on failure."""
+    try:
+        return (urllib.parse.urlparse(url or "").netloc or "").lower()
+    except Exception:
+        return ""
+
+
 def is_credible(url):
-    url = (url or "").lower()
-    return any(d in url for d in CREDIBLE_DOMAINS)
+    """Hostname-based credibility check (no substring false positives)."""
+    host = _host_of(url)
+    if not host:
+        return False
+    if host.endswith(".gov") or host.endswith(".edu"):
+        return True
+    return any(host == d or host.endswith("." + d) for d in CREDIBLE_DOMAINS)
 
 
 def is_specific(text):
     return bool(SPECIFIC_RE.search(text or ""))
 
 
+CJK_STOPCHARS = "的了是在有和与及等对为从到个之一不也很就都还要再又跟向同中上下于以可要"
+
+
+def query_keywords(text, limit=48):
+    """把长产品/用户描述压缩成紧凑检索词（保留 CJK 短语，丢弃纯停用字段）。"""
+    parts = re.split(r"[^\w一-鿿]+", text or "")
+    out, seen, size = [], set(), 0
+    for part in parts:
+        if not part:
+            continue
+        if re.fullmatch(r"[一-鿿]+", part):
+            if len(part) >= 2 and not set(part) <= set(CJK_STOPCHARS) and part not in seen:
+                out.append(part)
+                seen.add(part)
+                size += len(part)
+        else:
+            w = part.lower()
+            if len(w) >= 3 and w not in seen:
+                out.append(w)
+                seen.add(w)
+                size += len(w)
+        if size >= limit:
+            break
+    return " ".join(out)
+
+
 def default_queries(product, target_user, lang):
-    kw = product[:60]
-    kw_en = re.sub(r"[^\w\s]", " ", product)[:60].strip()
+    kw = query_keywords(product)
+    kw_en = query_keywords(product)
     q = []
     if lang == "zh":
         q = [
@@ -124,7 +172,7 @@ def default_queries(product, target_user, lang):
         q = [(mid, list(zh) + en_queries) for (mid, zh, en_queries) in
              [(m[0], zhq, dict(en)[m[0]]) for m, zhq in q]]
     if target_user:
-        t = target_user[:60]
+        t = query_keywords(target_user)
         q[0][1].insert(0, f"{t} 痛点 讨论")
         q[2][1].insert(0, f"{t} problems community")
     return q
@@ -188,11 +236,54 @@ def detect_backend(env):
     return None, None
 
 
+def available_backends(env):
+    """All configured backends in priority order: [(name, api_key), ...]."""
+    return [(name, env[key_env]) for name, key_env, _ in BACKENDS if env.get(key_env)]
+
+
+def search_with_fallback(query, candidates, max_results=4):
+    """Try each configured backend in order; return (results, backend_name).
+
+    Falls through on error or empty results; returns ([], "") if all fail.
+    """
+    by_name = {b[0]: b[2] for b in BACKENDS}
+    for name, api_key in candidates:
+        try:
+            results = by_name[name](query, api_key, max_results=max_results)
+            if results:
+                return results, name
+        except Exception:
+            continue
+    return [], ""
+
+
 # ---------------------------------------------------------------------------
 # 打分 Scoring
 # ---------------------------------------------------------------------------
-def score_evidence(evidence):
-    """机器证据分 0-10: 数量 + 可信来源 + 具体性 + 匹配度。"""
+def _query_terms(query_text):
+    """Weak relevance terms: CJK bigrams + English words (len>=4)."""
+    if isinstance(query_text, list):
+        query_text = " ".join(query_text)
+    text = query_text or ""
+    cjk = re.findall(r"[一-鿿]", text)
+    terms = {cjk[i] + cjk[i + 1] for i in range(len(cjk) - 1)}
+    terms.update(w for w in re.findall(r"[a-z][a-z0-9]{3,}", text.lower()))
+    return terms
+
+
+def _matches_query(item, terms):
+    if not terms:
+        return True
+    text = (item.get("title", "") + " " + item.get("snippet", "")).lower()
+    return any(t in text for t in terms)
+
+
+def score_evidence(evidence, queries=""):
+    """机器证据分 0-10: 数量 + 可信来源 + 具体性 + 匹配度（弱相关性折扣）。
+
+    匹配度是折扣项而非加分项：与检索词没有任何重叠的内容把总分打折到最低一半，
+    防止“有数字但不相关”的内容刷分。
+    """
     if not evidence:
         return 0.0
     count_score = min(4.0, len(evidence))
@@ -200,7 +291,11 @@ def score_evidence(evidence):
     cred_score = min(3.0, float(credible))
     specific = sum(1 for e in evidence if is_specific(e.get("snippet", "") + e.get("title", "")))
     spec_score = min(3.0, float(specific))
-    return round(min(10.0, count_score + cred_score + spec_score), 1)
+    base = min(10.0, count_score + cred_score + spec_score)
+    terms = _query_terms(queries)
+    matched = sum(1 for e in evidence if _matches_query(e, terms))
+    ratio = matched / float(len(evidence))
+    return round(base * (0.5 + 0.5 * ratio), 1)
 
 
 def tier_for(score):
@@ -251,6 +346,10 @@ def render_markdown(report):
         lines.append("| %s | %s | %s | %d | %s |"
                      % (m["label"], m["score"], m["tier"], len(m["evidence"]), srcs))
     lines.append("")
+    if not any(m["evidence"] for m in report["metrics"]):
+        lines.append("> 说明 Note：0.0 分 = 未找到公开证据（证据强度分），不代表市场不存在或产品失败。")
+        lines.append("> 0.0 means no public evidence was found (evidence-strength score); it does NOT mean the market does not exist or the product failed.")
+        lines.append("")
     for m in report["metrics"]:
         lines.append("### %s — %s/10（%s）" % (m["label"], m["score"], m["tier"]))
         lines.append("")
@@ -279,7 +378,7 @@ def render_markdown(report):
 def parse_args(argv):
     args = {"product": None, "out": "market_research_report.json",
             "format": "both", "score_only": None, "calibrate": None,
-            "no_search": False}
+            "no_search": False, "force": False}
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -303,6 +402,8 @@ def parse_args(argv):
             i += 1
         elif a == "--no-search":
             args["no_search"] = True
+        elif a == "--force":
+            args["force"] = True
         elif not a.startswith("-"):
             args["product"] = a
         else:
@@ -381,13 +482,6 @@ def main():
         lang = "zh" if any("\u4e00" <= c <= "\u9fff" for c in product[:60]) else "en"
 
     generated_at = time.strftime("%Y-%m-%d %H:%M:%S")
-    fill_form = {}
-    if os.path.exists("evidence_fill_form.json"):
-        try:
-            with open("evidence_fill_form.json", encoding="utf-8") as f:
-                fill_form = json.load(f).get("metrics", {})
-        except Exception:
-            fill_form = {}
 
     metrics_out = []
     notes = []
@@ -403,7 +497,7 @@ def main():
                 evidence = entry.get("evidence", [])
             else:
                 evidence = entry.get("evidence", [])
-                score = score_evidence(evidence)
+                score = score_evidence(evidence, entry.get("queries") or "")
             metrics_out.append({
                 "id": mid, "label": label, "desc": desc, "score": score,
                 "tier": tier_for(score), "evidence": evidence,
@@ -417,41 +511,76 @@ def main():
     else:
         # ---- 模式 2: 联网搜索 ----
         env = os.environ
-        backend, api_key = detect_backend(env)
-        do_search = bool(api_key) and not args["no_search"]
+        backends_avail = available_backends(env)
+        do_search = bool(backends_avail) and not args["no_search"]
+        queries_map = dict(default_queries(product, target_user, lang))
 
         if not do_search:
-            mode = "plan_only" if not fill_form else "agent_fill"
             backend = "none (no API key)"
             notes.append("未配置 TAVILY_API_KEY / SERPER_API_KEY / BING_API_KEY。")
             notes.append("No API key configured. Fill evidence_fill_form.json and re-run with --score-only.")
             print_key_setup_hint()
-            queries_map = dict(default_queries(product, target_user, lang))
         else:
             mode = "live_search"
-            notes.append("使用 %s 后端实时搜索；结果分数为机器证据分，agent 可人工校准 (--calibrate)。"
+            backend = " -> ".join(n for n, _ in backends_avail)
+            notes.append("实时搜索（多后端按序降级：%s）；结果分数为机器证据分，agent 可人工校准 (--calibrate)。"
                          % backend)
-            notes.append("Live search via %s; scores are machine evidence scores; calibrate with --calibrate." % backend)
-            queries_map = dict(default_queries(product, target_user, lang))
+            notes.append("Live search (multi-backend fallback: %s); scores are machine evidence scores; calibrate with --calibrate." % backend)
 
-        # 生成检索计划 / 证据表单
-        plan = []
-        for mid, label, desc in METRICS:
-            queries = queries_map.get(mid, [])[:3]
-            plan.append({"id": mid, "label": label, "desc": desc, "queries": queries})
+        # 生成检索计划 / 证据表单（保留已有已填证据，不静默覆盖）
+        plan = [{"id": mid, "label": label, "desc": desc,
+                 "queries": queries_map.get(mid, [])[:3]}
+                for mid, label, desc in METRICS]
+
+        preserved = {}
+        if os.path.exists("evidence_fill_form.json"):
+            try:
+                with open("evidence_fill_form.json", encoding="utf-8") as f:
+                    old_form = json.load(f)
+                old_metrics = old_form.get("metrics", {}) or {}
+                old_product = old_form.get("product", "") or ""
+                has_evidence = any((old_metrics.get(mid, {}) or {}).get("evidence")
+                                   for mid, _, _ in METRICS)
+                if has_evidence and old_product and old_product != product and not args["force"]:
+                    print("警告 Warning：evidence_fill_form.json 属于其他产品（%s），"
+                          "为避免覆盖已填证据已停止；确认要重新生成请加 --force。"
+                          % old_product[:60])
+                    return 1
+                if has_evidence and not args['force']:
+                    preserved = {mid: old_metrics.get(mid, {}) for mid, _, _ in METRICS
+                                 if old_metrics.get(mid, {}).get("evidence")}
+                    notes.append("已保留 %d 个指标的已填证据；本次仅更新检索词。--force 可放弃旧证据。"
+                                 % len(preserved))
+                elif has_evidence and args['force']:
+                    notes.append('已按 --force 放弃旧证据，重新生成空表单。')
+                    notes.append('--force: old evidence discarded, regenerating an empty form.')
+            except Exception:
+                preserved = {}
 
         fill_out = {"product": product, "target_user": target_user,
-                    "metrics": {p["id"]: {"evidence": [], "note": "", "queries": p["queries"]} for p in plan}}
+                    "metrics": {p["id"]: {
+                        "evidence": (preserved.get(p["id"]) or {}).get("evidence", []),
+                        "note": (preserved.get(p["id"]) or {}).get("note", ""),
+                        "queries": p["queries"]} for p in plan}}
         with open("evidence_fill_form.json", "w", encoding="utf-8") as f:
             json.dump(fill_out, f, ensure_ascii=False, indent=2)
 
+        if not do_search:
+            preserved_any = any((preserved.get(p["id"]) or {}).get("evidence") for p in plan)
+            mode = "agent_fill" if preserved_any else "plan_only"
+            if preserved_any:
+                notes.append("降级模式 + 已有证据：分数来自 evidence_fill_form.json 的已填证据。")
+                notes.append("Degraded mode with preserved evidence: scores come from the filled evidence form.")
+
         if do_search:
+            used_backends = []
             for p in plan:
                 evidence, seen = [], set()
                 for query in p["queries"]:
                     try:
-                        results = BACKENDS[[b[0] for b in BACKENDS].index(backend)][2](
-                            query, api_key, max_results=4)
+                        results, used_name = search_with_fallback(query, backends_avail, max_results=4)
+                        if used_name and used_name not in used_backends:
+                            used_backends.append(used_name)
                     except Exception as e:
                         notes.append("[%s] 搜索失败 search failed: %s" % (p["id"], e))
                         results = []
@@ -463,7 +592,7 @@ def main():
                     if len(evidence) >= 5:
                         break
                     time.sleep(0.3)
-                score = score_evidence(evidence)
+                score = score_evidence(evidence, " ".join(p["queries"]))
                 summary = summarize_metric(p["label"], evidence)
                 metrics_out.append({
                     "id": p["id"], "label": p["label"], "desc": p["desc"],
@@ -471,11 +600,13 @@ def main():
                     "evidence": evidence[:6], "summary": summary,
                     "queries": " | ".join(p["queries"]),
                 })
+            if used_backends:
+                backend = " -> ".join(used_backends)
         else:
             for p in plan:
-                entry = fill_form.get(p["id"], {}) or {}
+                entry = preserved.get(p["id"], {}) or {}
                 evidence = entry.get("evidence", [])
-                score = score_evidence(evidence)
+                score = score_evidence(evidence, " ".join(p["queries"]))
                 metrics_out.append({
                     "id": p["id"], "label": p["label"], "desc": p["desc"],
                     "score": score, "tier": tier_for(score),

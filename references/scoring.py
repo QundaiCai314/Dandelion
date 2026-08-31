@@ -32,6 +32,10 @@
 规则 Rules:
 - market_research 的 evidence 含义: strong=已联网/填表完成调研且证据充分; weak=已调研但证据少; none=未做调研（按深度封顶处理）
   For market_research, evidence means: strong=research done (live or agent-filled) with solid evidence; weak=research done but thin; none=no research (depth caps apply)
+- 市场调研环节分建议（详见 references/framework.md）：先跑 market_research.py，环节分 = round(机器总体证据分)，再按覆盖率封顶——
+  8 项指标全部有证据且与产品主张一致 → evidence=strong，可 7-10；覆盖率不足一半或未调研 → evidence=none，≤3；其余 → evidence=weak，≤6。
+  Suggested market_research stage score (see references/framework.md): run market_research.py, stage = round(machine overall), then cap by coverage:
+  all 8 metrics evidenced and consistent with claims → strong, 7-10; less than half covered or not researched → none, ≤3; otherwise weak, ≤6.
 - 每环节 Per stage: >=7 健康 healthy, 5-6.9 薄弱 weak, <5 断裂 broken
 - 链路打通 Loop Closed: 全部 >=7 且平均分 >=7.5 all stages >=7 and average >=7.5
 - 接近打通 Nearly Closed: 无环节 <5 且平均分 >=7 no stage <5 and average >=7
@@ -40,6 +44,8 @@
 
 import json
 import sys
+
+__version__ = "1.1.0"
 
 STAGES = [
     ("market_research", "市场调研 Market Research"),
@@ -86,8 +92,8 @@ def main(argv):
             print("错误 Error: %s 分数不是数字 score not numeric: %r" % (label, raw))
             return 1
         value = float(raw)
-        if value < 0 or value > 10:
-            print("错误 Error: %s 分数超出 0-10 out of range: %r" % (label, raw))
+        if not (0.0 <= value <= 10.0):
+            print("错误 Error: %s 分数不是有效的 0-10 数字（NaN/无穷/越界）invalid number: %r" % (label, raw))
             return 1
         ev = evidence.get(key)
         if ev not in EVIDENCE_CAP:
@@ -169,6 +175,9 @@ def main(argv):
         print("警告 Warnings（证据封顶 evidence caps applied）:")
         for w in warnings:
             print("  - %s" % w)
+    print()
+    print("提示 Hint：未标注 evidence 的环节一律按 none（≤3）处理；若与报告分数不符，说明 evidence 漏填。")
+    print("Stages without an evidence field default to none (≤3); a mismatch with the report means the field was omitted.")
     print()
     print("行动优先级 Action priority（断裂 → 薄弱 → 增长杠杆，分低者先）:")
     if not broken and not weak:

@@ -158,11 +158,25 @@ Score = definition depth × external cross-checking. Strictness is about how dee
 - 他人项目 Projects of others：结论前注明「基于公开证据」，低分环节标注「证据不足」或「设计缺失」。 Prefix the verdict with "based on public evidence"; mark low stages as "insufficient evidence" or "missing design".
 - 行动优先级 Action priority：断裂环节（分数低者先）→ 薄弱环节（分数低者先）→ 若全部健康，优先寻找复购与传播的增长杠杆。 Broken stages (lowest score first) → weak stages (lowest first) → if all healthy, prioritize growth levers in Retention & Referral.
 
+### 市场调研环节分 ↔ 8 指标机器分 Mapping the research engine to the stage score
+先跑 references/market_research.py，得到 8 项指标的机器证据分与总体分 E。
+Run references/market_research.py first: it outputs per-metric machine evidence scores and an overall score E.
+- 覆盖率 Coverage C = 有公开证据的指标数 / 8。Coverage C = metrics with evidence / 8.
+- 一致性 Consistency：调研结论是否与产品主张一致（AI 判断；矛盾视为不一致）。Findings consistent with the product claims? (AI judgment; contradictions count as inconsistent)
+- 换算 Conversion：市场调研环节分 = round(E)，并按以下封顶 Conversion: stage score = round(E), capped by:
+  - C=1 且一致 → evidence=strong，不封顶（可 7-10；若 E<7，证据虽全但弱，不建议超过 E）
+    C=1 & consistent → strong, no cap (7-10; if E<7 the evidence is thin, keep near E)
+  - 0.5≤C<1 → evidence=weak，≤6
+  - C<0.5 或未跑调研 → evidence=none，≤3
+- 机器 E 是「证据强度」，不是「市场好坏」；0 分 = 未找到公开证据，不代表市场不存在。E measures evidence strength, not market quality; 0 means no public evidence was found.
+
 ## 打分计算器 Scoring Calculator（可选 optional）
 为保证打分与判定一致，可先用脚本校验：将七环分数写入 JSON 文件，运行 `python references/scoring.py <file>`，脚本输出平均分、逐环状态、结论与行动优先级；加 `--json` 可输出机器可读结果。
-To keep scoring and verdicts consistent, verify with the script first: write the six scores to a JSON file and run `python references/scoring.py <file>`; it outputs the average, per-stage status, verdict and action priority. Add `--json` for machine-readable output.
+To keep scoring and verdicts consistent, verify with the script first: write the seven scores to a JSON file and run `python references/scoring.py <file>`; it outputs the average, per-stage status, verdict and action priority. Add `--json` for machine-readable output.
 JSON 必须包含 scores 对象，键为七环：market_research / real_demand / value_proposition / acquisition / paid_conversion / delivery / retention_referral，取值 0-10；evidence 可选（strong / weak / none，兼容 verified / partial），含义为定义深度与核对强度。封顶：none→3、weak/partial→6、strong/verified 不限。
 The JSON must contain a scores object with the seven keys: market_research / real_demand / value_proposition / acquisition / paid_conversion / delivery / retention_referral, values 0-10; evidence is optional (strong / weak / none; verified / partial accepted as aliases) and means definition depth & cross-checking strength. Caps: none→3, weak/partial→6, strong/verified unlimited.
+- 证据表单保护：运行 market_research.py（非 --score-only）会保留已填证据、只更新检索词；表单属于其他产品时拒绝覆盖并提示 --force。
+  Evidence form protection: re-running the research script preserves filled evidence and only refreshes queries; it refuses to overwrite a form belonging to another product unless --force is given.
 
 ## 修复模式工作法 Repair Mode
 修复按「断裂 → 薄弱 → 增长杠杆」顺序逐项进行。AI 不直接修改用户产品，而是为每项输出**完整修改方案**：目标 → 具体改动 → 实施步骤 → 验收标准；用户确认后自行执行，执行完成可要求复检。
@@ -181,4 +195,6 @@ Fixes proceed item by item in the order "broken → weak → growth levers". The
 The user may request a "re-check" anytime: re-score each stage with current evidence, compare with the previous scores, and update the verdict and remaining actions.
 复检输出：分数对比表（上次/本次/变化）+ 更新后的结论 + 剩余行动。分数提升说明修复有效；未提升的环节继续进入修复队列。
 Re-check output: score comparison (previous/current/delta) + updated verdict + remaining actions. Improvements show the fix worked; unchanged stages stay in the repair queue.
+- 状态持久化：每次出报告时，把七环分数与结论同时保存到工作目录 dandelion-scores.json；复检时先读取该文件作为「上次分数」基线，避免跨会话丢失对比依据。
+  Persistence: every report also writes the seven scores to dandelion-scores.json in the working directory; re-checks read it as the previous-score baseline.
 

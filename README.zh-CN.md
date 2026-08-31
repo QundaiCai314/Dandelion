@@ -56,7 +56,9 @@ python references/market_research.py --product "产品一句话描述"
 ```
 python references/market_research.py --score-only evidence_fill_form.json
 ```
-分数 = 结果数量 + 可信来源 + 具体数字；agent 阅读实际结果后可用 `--calibrate <file>` 人工校准。
+分数 = 结果数量 + 可信来源 + 具体数字 + 弱相关性折扣；agent 阅读实际结果后可用 `--calibrate <file>` 人工校准。
+重跑不会覆盖已填证据：已填证据会保留、只刷新检索词；表单属于其他产品时脚本会拒绝并提示 `--force`。
+路径以 skill 目录为基准：若当前工作目录不是 skill 根目录，请先解析绝对路径（如 `<skill_dir>/references/market_research.py`）再运行；需要 Python 3.8+。
 
 ## 安装 Install
 任何支持 skill 机制的 agent，把本仓库目录（克隆后默认名 `Dandelion`，内含 SKILL.md）放入对应 skills 目录即可。
@@ -90,6 +92,7 @@ Project inspection: "Use the business-chain-diagnosis skill to inspect this proj
 - references/output-template.md — 报告模板与导出说明
 - references/scoring.py — 打分计算器（可选）：校验平均分、结论与行动优先级
 - examples/example-output.md — 示例报告
+- tests/test_sanity.py — 自检测试（`python tests/test_sanity.py`，纯标准库）
 - LICENSE — MIT License
 
 ## 判定规则速览 Scoring Rules
@@ -101,6 +104,10 @@ Project inspection: "Use the business-chain-diagnosis skill to inspect this proj
 - 他人项目：结论注明「基于公开证据」；自己的项目：答不出/没验证按薄弱处理
 - 市场调研：未跑调研 ≤3；已调研但证据单薄 ≤6；8 项指标全部有证据且与产品主张一致才可 ≥7
 - 深度判断：模糊/未对齐 ≤3；定义清晰但未外部核对 ≤6；7 分以上需深度对齐 + 桌面研究核对（不要求访谈/数据）；复购传播无设计 ≤2
+
+## 测试与版本 Tests & Version
+- `python tests/test_sanity.py` — 打分启发式与计算器的自检测试（纯标准库，无第三方依赖）
+- 版本 Version：1.1.0
 
 ## License
 本项目基于 MIT License 开源，见 [LICENSE](LICENSE)。

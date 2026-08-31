@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+*.pyc
+
+# Dandelion runtime artifacts (written to the working directory)
+evidence_fill_form.json
+market_research_report.json
+business-chain-report.md
+dandelion-scores.json

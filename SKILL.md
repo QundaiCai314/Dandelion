@@ -25,6 +25,7 @@ Assess whether a digital product/SaaS design closes the business loop, helping c
    Determine the mode: a project/link/directory or a request to "inspect this project" → Project Inspection; "help me self-check my product / see how I am doing" → Self-Check; if unclear, ask first whether the project belongs to the user or to someone else.
 2. 市场调研：正式诊断前，先运行 python references/market_research.py --product "<产品描述>"（有 API key 自动联网搜索；无 key 时按生成的 evidence_fill_form.json 由 agent 用自己的联网搜索补完证据，再以 --score-only 计算分数），产出 8 项市场指标（用户画像/群体范围/痛点/付费意愿/付费习惯/竞品/市场规模/渠道）的分数与证据来源，作为后续环节的外部核对依据；未运行调研时市场调研环节 ≤3 分。
    Market research: before diagnosis, run python references/market_research.py --product "<product>" (live search with an API key; without a key, complete evidence_fill_form.json via the agent's own web search, then --score-only), producing scores and evidence sources for the 8 market metrics (persona/scope/pain/willingness/habits/competitors/size/channels) as the external cross-checking basis; no research → the stage caps at 3.
+   Paths & Python: all script/doc paths are relative to the skill directory — resolve the absolute path (e.g. <skill_dir>/references/market_research.py) when the working directory is not the skill root; requires Python 3.8+. The script preserves filled evidence (refuses to overwrite another product's form without --force); stage score = round(machine overall) capped by coverage, rules in references/framework.md. 路径以 skill 目录为基准：当前目录不是 skill 根目录时先解析绝对路径；需要 Python 3.8+；脚本不会覆盖已填证据；环节分 = 机器总体分按覆盖率封顶（见 references/framework.md）。
 3. 项目检查：多通道收集证据（README、docs、代码结构、官网、定价页、应用商店页、公开报道与社区讨论），逐环节诊断打分。
    Inspection: gather evidence from multiple channels (README, docs, code structure, website, pricing page, app store listing, public reports and community discussions), then diagnose and score each stage.
 4. 发现问题时（任一环节 <5，或 ≥2 个环节 <7）：必须问「这是你自己的项目吗？」
@@ -46,6 +47,8 @@ Assess whether a digital product/SaaS design closes the business loop, helping c
 
 ## 核心规则 Core Rules
 - 市场调研证据先行：诊断开始前先跑 references/market_research.py。8 项指标全部有证据、且与产品主张一致 → 市场调研环节可 ≥7；已调研但证据单薄 → ≤6；未跑调研 → ≤3。
+- 市场调研环节分换算：环节分 = round(机器总体证据分)，按覆盖率封顶——8/8 指标有证据且与主张一致 → strong 不封顶；4-7/8 → weak ≤6；<4/8 或未跑 → none ≤3。机器分是证据强度，0 分不代表市场不存在。
+  Stage score = round(machine overall) capped by coverage: 8/8 evidenced & consistent → strong (no cap); 4-7/8 → weak (≤6); <4/8 or no research → none (≤3). Machine scores measure evidence strength; 0 does not mean the market does not exist.
   Market research evidence first: run references/market_research.py before scoring. All 8 metrics backed by evidence consistent with the product claims → 7+; researched but thin → ≤6; no research → ≤3.
 - 判断深度优先：分数 = 定义深度 × 外部核对。起步阶段没有访谈/使用数据是正常的，不算低分理由；**说不清用户、需求未对齐（如相邻人群混淆）才是低分理由**。深度对齐 + 桌面研究核对 → 7 分以上；定义清晰但未核对 → ≤6；模糊未对齐 → ≤3。禁止臆测。
   Judgment depth first: score = definition depth × external cross-checking. Having no interviews/usage data at the start is normal and not a reason for a low score; **being unable to state the user or misaligning the demand (e.g., conflating adjacent segments) is**. Aligned demand cross-checked via desk research → 7+; clearly defined but not cross-checked → ≤6; vague/misaligned → ≤3. Never speculate.
@@ -59,7 +62,8 @@ Assess whether a digital product/SaaS design closes the business loop, helping c
   Retention & Referral break most easily: no retention or referral design at all → broken outright (no higher than 2).
 - 修复输出**完整修改方案**：每项包含目标、具体改动、实施步骤、验收标准，由用户自己执行；AI 不直接修改用户产品，只负责方案设计、细化与复检。
   Fix output is a **complete plan**: goal, concrete changes, steps, acceptance criteria per item, executed by the user; the AI designs, refines, and re-checks only.
-- 修复逐项进行，一项落地后再进入下一项；用户可随时「复检」对比分数变化。
+- 修复逐项进行，一项落地后再进入下一项；用户可随时「复检」对比分数变化；每次出报告时把七环分数与结论保存到工作目录 dandelion-scores.json，复检先读取该基线再对比。
+  Fixes proceed item by item; the user may re-check anytime; each report also saves the seven scores to dandelion-scores.json (working directory) as the re-check baseline.
   Fixes proceed item by item; the user may re-check anytime to compare score changes.
 - 输出语言跟随用户提问语言；说明文档为中英双语。
   Output language follows the language of the user; the documentation is bilingual (Chinese & English).
@@ -73,5 +77,6 @@ Assess whether a digital product/SaaS design closes the business loop, helping c
 - references/output-template.md — 报告模板与导出说明
   Report template and export notes
 - examples/example-output.md — 示例报告（含修复与输出示例）
+- tests/test_sanity.py — 自检测试（`python tests/test_sanity.py`）Sanity tests (stdlib only)
   Example report (including repair and export examples)
 
