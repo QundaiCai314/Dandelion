@@ -326,6 +326,33 @@ def load_product(path_or_desc, fallback=None):
     return path_or_desc, "", "", "auto"
 
 
+
+
+def print_key_setup_hint():
+    """No API key detected: print actionable setup instructions (中英双语)."""
+    print()
+    print("⚠ 未检测到搜索 API key  No search API key detected")
+    print("   (TAVILY_API_KEY / SERPER_API_KEY / BING_API_KEY 均未配置)")
+    print("已自动降级：生成检索计划 + evidence_fill_form.json，由 agent 补查后打分。")
+    print("Degraded: a search plan + evidence_fill_form.json was generated; the agent fills")
+    print("evidence with its own web search, then scores.")
+    print()
+    print("想让脚本全自动联网搜索？配置一个 key 即可（可选，约 2 分钟）。")
+    print("Want fully automatic web search? Set up one key (optional, ~2 min):")
+    print("  1. 免费领取 API key  Get a free API key:")
+    print("     - Tavily (推荐 recommended): https://tavily.com → Dashboard → API Keys")
+    print("     - Serper (Google 结果): https://serper.dev → API Key")
+    print("     - Bing: Azure 门户 → Bing Web Search 资源 → Keys & Endpoint")
+    print("  2. 设置环境变量（变量名必须一致；key 只存本机、不会进 Git）")
+    print("     Set the env var (name must match; key stays local, never in Git):")
+    print("     - Windows 当前会话 current session: $env:TAVILY_API_KEY=tvly-xxxx")
+    print("     - Windows 永久 permanent: setx TAVILY_API_KEY tvly-xxxx")
+    print("     - macOS/Linux: export TAVILY_API_KEY=tvly-xxxx   (写入 ~/.zshrc 持久生效)")
+    print("  3. 重新运行验证  Re-run to verify:")
+    print("     python references/market_research.py --product 你的产品")
+    print("     输出显示 live backend (tavily/serper/bing) 即配置成功。")
+    print()
+
 def main():
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -398,6 +425,7 @@ def main():
             backend = "none (no API key)"
             notes.append("未配置 TAVILY_API_KEY / SERPER_API_KEY / BING_API_KEY。")
             notes.append("No API key configured. Fill evidence_fill_form.json and re-run with --score-only.")
+            print_key_setup_hint()
             queries_map = dict(default_queries(product, target_user, lang))
         else:
             mode = "live_search"
