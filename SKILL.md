@@ -31,6 +31,8 @@ Assess whether a digital product/SaaS design closes the business loop, helping c
      Projects of others → output the report directly, mark evidence-starved stages as "insufficient evidence" and list what to supply, and note the verdict is "based on public evidence, not the true state of the product".
    - 自己的 → 问用户要「补充材料」还是「一个一个提问」（默认一个一个提问），补齐后重新打分再出报告。
      Your own → ask whether to supply materials or answer questions one by one (one-by-one is the default), then re-score with the new evidence and report.
+   - 打分校验（可选）：把六环分数写成 JSON，运行 references/scoring.py，用脚本输出的平均分、结论与行动优先级（防止判定漂移）。
+     Score verification (optional): write the six scores to JSON, run references/scoring.py, and use its average, verdict and action priority (to prevent judgment drift).
 4. 全部环节健康时 → 直接输出报告，不追问。
    If all stages are healthy → output the report directly, no follow-up.
 5. 自检：按 6 环节顺序提问，默认一次一个问题；答不上来的题记录为「未验证/未设计」并继续，不卡住；问完打分出报告。
@@ -61,6 +63,7 @@ Assess whether a digital product/SaaS design closes the business loop, helping c
 ## 资源 Resources
 - references/framework.md — 链路模型、每环节检查项、自检提问清单、打分细则、判定规则、修复工作法与复检规则
   Loop model, per-stage checklists, self-check questions, scoring, verdict rules, repair playbook and re-check rules
+- references/scoring.py — 打分计算器（可选）：校验平均分、结论与行动优先级 Scoring calculator (optional): verifies average, verdict and action priority
 - references/output-template.md — 报告模板与导出说明
   Report template and export notes
 - examples/example-output.md — 示例报告（含修复与输出示例）

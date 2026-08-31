@@ -1,0 +1,171 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Dandelion 商业链路诊断打分计算器 | Scoring calculator.
+
+用法 Usage:
+    python scoring.py <scores.json> [--json]
+
+输入 JSON 格式 Input JSON schema:
+{
+  "product": "可选 optional",
+  "mode": "selfcheck | inspection 可选 optional",
+  "ownership": "own | other 可选 optional",
+  "evidence": {            # 可选 optional: "verified" | "partial" | "none"
+    "acquisition": "none"
+  },
+  "scores": {
+    "real_demand": 8,
+    "value_proposition": 7,
+    "acquisition": 4,
+    "paid_conversion": 5,
+    "delivery": 6,
+    "retention_referral": 2
+  }
+}
+
+规则 Rules（与 references/framework.md 一致）:
+- 每环节 Per stage: >=7 健康 healthy, 5-6.9 薄弱 weak, <5 断裂 broken
+- 链路打通 Loop Closed: 全部 >=7 且平均分 >=7.5 all stages >=7 and average >=7.5
+- 接近打通 Nearly Closed: 无环节 <5 且平均分 >=7 no stage <5 and average >=7
+- 未打通 Not Closed: 任一环节 <5 或平均分 <7 any stage <5 or average <7
+- evidence 为 none 且分数 >3 时自动封顶 3 并警告 if evidence is none and score > 3, cap to 3 with a warning
+"""
+
+import json
+import sys
+
+STAGES = [
+    ("real_demand", "真实需求 Real Demand"),
+    ("value_proposition", "价值主张 Value Proposition"),
+    ("acquisition", "获客 Acquisition"),
+    ("paid_conversion", "付费转化 Paid Conversion"),
+    ("delivery", "交付与体验 Delivery & Experience"),
+    ("retention_referral", "复购与传播 Retention & Referral"),
+]
+
+
+def main(argv):
+    if len(argv) < 1 or argv[0] in ("-h", "--help"):
+        print(__doc__)
+        return 0
+    path = argv[0]
+    as_json = "--json" in argv[1:]
+
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as e:  # noqa: BLE001
+        print("错误 Error: 无法读取 JSON cannot read JSON - %s" % e)
+        return 1
+
+    scores = data.get("scores")
+    if not isinstance(scores, dict):
+        scores = {k: data[k] for k, _ in STAGES if k in data}
+
+    missing = [k for k, _ in STAGES if k not in scores]
+    if missing:
+        print("错误 Error: 缺少环节 missing stages: %s" % ", ".join(missing))
+        return 1
+
+    evidence = data.get("evidence") or {}
+    warnings = []
+    normalized = {}
+    for key, label in STAGES:
+        raw = scores[key]
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+            print("错误 Error: %s 分数不是数字 score not numeric: %r" % (label, raw))
+            return 1
+        value = float(raw)
+        if value < 0 or value > 10:
+            print("错误 Error: %s 分数超出 0-10 out of range: %r" % (label, raw))
+            return 1
+        if evidence.get(key) == "none" and value > 3:
+            warnings.append("%s：证据不足 none，%g 分封顶为 3 (score capped to 3)" % (label, value))
+            value = 3.0
+        normalized[key] = value
+
+    values = [normalized[k] for k, _ in STAGES]
+    average = sum(values) / len(values)
+
+    statuses = {}
+    broken = []
+    weak = []
+    for i, (key, label) in enumerate(STAGES):
+        v = normalized[key]
+        if v < 5:
+            st = "断裂 Broken"
+            broken.append((key, v, i, label))
+        elif v < 7:
+            st = "薄弱 Weak"
+            weak.append((key, v, i, label))
+        else:
+            st = "健康 Healthy"
+        statuses[key] = {"score": v, "status": st, "label": label}
+
+    if not broken and not weak and average >= 7.5:
+        verdict_key, verdict = "loop_closed", "链路打通 Loop Closed"
+    elif not broken and average >= 7:
+        verdict_key, verdict = "nearly_closed", "接近打通 Nearly Closed"
+    else:
+        verdict_key, verdict = "not_closed", "未打通 Not Closed"
+
+    note = "（基于公开证据 based on public evidence）" if data.get("ownership") == "other" else ""
+
+    priority = sorted(broken, key=lambda t: (t[1], t[2])) + sorted(weak, key=lambda t: (t[1], t[2]))
+    if not broken and not weak:
+        priority = [(k, 0, 0, label) for k, label in STAGES if k == "retention_referral"]
+
+    if as_json:
+        out = {
+            "product": data.get("product", ""),
+            "mode": data.get("mode", ""),
+            "ownership": data.get("ownership", ""),
+            "scores": {k: normalized[k] for k, _ in STAGES},
+            "average": round(average, 2),
+            "verdict": verdict_key,
+            "verdict_text": verdict + note,
+            "statuses": statuses,
+            "priority": [k for k, _, _, _ in priority],
+            "warnings": warnings,
+        }
+        print(json.dumps(out, ensure_ascii=False, indent=2))
+        return 0
+
+    print("=== Dandelion 商业链路诊断 Scoring Calculator ===")
+    if data.get("product"):
+        print("产品 Product : %s" % data["product"])
+    meta = []
+    if data.get("mode"):
+        meta.append("模式 Mode: %s" % data["mode"])
+    if data.get("ownership"):
+        meta.append("归属 Ownership: %s" % data["ownership"])
+    if meta:
+        print(" | ".join(meta))
+    print()
+    print("%-30s %5s  %s" % ("环节 Stage", "分数", "状态 Status"))
+    print("-" * 64)
+    for key, label in STAGES:
+        s = statuses[key]
+        print("%-30s %5.1f  %s" % (label, s["score"], s["status"]))
+    print("-" * 64)
+    print("平均分 Average : %.2f" % average)
+    print("结论 Verdict   : %s%s" % (verdict, note))
+    if warnings:
+        print()
+        print("警告 Warnings:")
+        for w in warnings:
+            print("  - %s" % w)
+    print()
+    print("行动优先级 Action priority（断裂 → 薄弱 → 增长杠杆，分低者先）:")
+    if not broken and not weak:
+        print("  1. %s (增长杠杆 growth lever)" % priority[0][3])
+    else:
+        for n, (_, v, _, label) in enumerate(priority, 1):
+            tag = "断裂 Broken" if v < 5 else "薄弱 Weak"
+            print("  %d. %s (%g) — %s" % (n, label, v, tag))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
+

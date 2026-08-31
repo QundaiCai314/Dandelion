@@ -15,6 +15,7 @@ A skill for any AI agent: assess whether a digital product or SaaS design closes
 - **修复模式**：诊断后为每个问题输出**完整修改方案**（目标、具体改动、步骤、验收标准），由你自己执行；AI 负责方案细化、答疑与复检，不直接改动你的产品
 - **结论输出**：生成可保存/分享的 Markdown 诊断报告文件（business-chain-report.md）
 - 证据优先：证据不足的环节最高 3 分并标记，禁止臆测
+- **打分计算器**：可选的 `references/scoring.py`，用脚本校验平均分、结论与行动优先级，防止判定漂移
 
 ## 安装 Install
 任何支持 skill 机制的 agent，把本仓库目录（克隆后默认名 `dandelion`，内含 SKILL.md）放入对应 skills 目录即可。
@@ -45,6 +46,7 @@ Project inspection: "Use the business-chain-diagnosis skill to inspect this proj
 - SKILL.md — 技能主文件（触发描述 + 两条路线流程 + 修复与输出流程 + 核心规则）
 - references/framework.md — 链路模型、自检提问清单、每环节检查项、打分细则、判定规则、修复工作法与复检规则
 - references/output-template.md — 报告模板与导出说明
+- references/scoring.py — 打分计算器（可选）：校验平均分、结论与行动优先级
 - examples/example-output.md — 示例报告
 - LICENSE — MIT License
 
@@ -60,3 +62,4 @@ Project inspection: "Use the business-chain-diagnosis skill to inspect this proj
 本项目基于 MIT License 开源，见 [LICENSE](LICENSE)。
 
 Released under the [MIT License](LICENSE).
+

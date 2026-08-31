@@ -1,0 +1,21 @@
+{
+  "product": "秒开发票（示例）",
+  "mode": "selfcheck",
+  "ownership": "own",
+  "evidence": {
+    "real_demand": "verified",
+    "value_proposition": "partial",
+    "acquisition": "partial",
+    "paid_conversion": "partial",
+    "delivery": "partial",
+    "retention_referral": "none"
+  },
+  "scores": {
+    "real_demand": 8,
+    "value_proposition": 7,
+    "acquisition": 4,
+    "paid_conversion": 5,
+    "delivery": 6,
+    "retention_referral": 2
+  }
+}

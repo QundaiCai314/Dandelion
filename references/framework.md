@@ -122,6 +122,12 @@ Without evidence, cap the stage at 3 and list what information is needed in the 
 - 他人项目 Projects of others：结论前注明「基于公开证据」，低分环节标注「证据不足」或「设计缺失」。 Prefix the verdict with "based on public evidence"; mark low stages as "insufficient evidence" or "missing design".
 - 行动优先级 Action priority：断裂环节（分数低者先）→ 薄弱环节（分数低者先）→ 若全部健康，优先寻找复购与传播的增长杠杆。 Broken stages (lowest score first) → weak stages (lowest first) → if all healthy, prioritize growth levers in Retention & Referral.
 
+## 打分计算器 Scoring Calculator（可选 optional）
+为保证打分与判定一致，可先用脚本校验：将六环分数写入 JSON 文件，运行 `python references/scoring.py <file>`，脚本输出平均分、逐环状态、结论与行动优先级；加 `--json` 可输出机器可读结果。
+To keep scoring and verdicts consistent, verify with the script first: write the six scores to a JSON file and run `python references/scoring.py <file>`; it outputs the average, per-stage status, verdict and action priority. Add `--json` for machine-readable output.
+JSON 必须包含 scores 对象，键为六环：real_demand / value_proposition / acquisition / paid_conversion / delivery / retention_referral，取值 0-10；evidence 可选（verified / partial / none），为 none 且分数 >3 时自动封顶 3 并警告。
+The JSON must contain a scores object with the six keys: real_demand / value_proposition / acquisition / paid_conversion / delivery / retention_referral, values 0-10; evidence is optional (verified / partial / none); if evidence is none and the score is above 3, the script caps it at 3 with a warning.
+
 ## 修复模式工作法 Repair Mode
 修复按「断裂 → 薄弱 → 增长杠杆」顺序逐项进行。AI 不直接修改用户产品，而是为每项输出**完整修改方案**：目标 → 具体改动 → 实施步骤 → 验收标准；用户确认后自行执行，执行完成可要求复检。
 Fixes proceed item by item in the order "broken → weak → growth levers". The AI does not modify the product; for each item it outputs a **complete fix plan**: goal → concrete changes → implementation steps → acceptance criteria; the user executes after confirming and may request a re-check when done.

@@ -15,6 +15,7 @@ A skill for any AI agent: assess whether a **digital product / SaaS / software /
 - **Repair Mode**: after diagnosis, outputs a complete fix plan per problem (goal, concrete changes, steps, acceptance criteria) for YOU to execute; the AI only refines the plan, answers questions, and re-checks — it never modifies your product directly
 - **Export**: generates a shareable Markdown report (`business-chain-report.md`)
 - Evidence-first: stages without evidence are capped at 3 and flagged; no guessing
+- **Scoring calculator**: optional `references/scoring.py` verifies the average, verdict and action priority for consistent results
 
 ## Install
 Copy this repository directory (default folder name `dandelion`, containing SKILL.md) into your agent's skills directory.
@@ -41,6 +42,7 @@ Export: "Export the report to a file"
 - SKILL.md — main skill file (trigger description, two-mode workflow, repair & export workflow, core rules)
 - references/framework.md — loop model, self-check questions, per-stage checklists, scoring, verdict rules, repair playbook & re-check rules
 - references/output-template.md — report template & export notes
+- references/scoring.py — optional scoring calculator (average, verdict, action priority)
 - examples/example-output.md — example report
 - LICENSE — MIT License
 
@@ -54,3 +56,4 @@ Export: "Export the report to a file"
 
 ## License
 Released under the [MIT License](LICENSE).
+
