@@ -18,7 +18,7 @@ A skill for any AI agent: assess whether a **digital product / SaaS / software /
 - **Scoring calculator**: optional `references/scoring.py` verifies the average, verdict and action priority for consistent results
 
 ## Install
-Copy this repository directory (default folder name `dandelion`, containing SKILL.md) into your agent's skills directory.
+Copy this repository directory (default folder name `Dandelion`, containing SKILL.md) into your agent's skills directory.
 
 | Agent | Directory |
 | --- | --- |
@@ -56,4 +56,5 @@ Export: "Export the report to a file"
 
 ## License
 Released under the [MIT License](LICENSE).
+
 

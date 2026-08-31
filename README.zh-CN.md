@@ -18,7 +18,7 @@ A skill for any AI agent: assess whether a digital product or SaaS design closes
 - **打分计算器**：可选的 `references/scoring.py`，用脚本校验平均分、结论与行动优先级，防止判定漂移
 
 ## 安装 Install
-任何支持 skill 机制的 agent，把本仓库目录（克隆后默认名 `dandelion`，内含 SKILL.md）放入对应 skills 目录即可。
+任何支持 skill 机制的 agent，把本仓库目录（克隆后默认名 `Dandelion`，内含 SKILL.md）放入对应 skills 目录即可。
 
 | Agent | 目录 |
 | --- | --- |
@@ -62,4 +62,5 @@ Project inspection: "Use the business-chain-diagnosis skill to inspect this proj
 本项目基于 MIT License 开源，见 [LICENSE](LICENSE)。
 
 Released under the [MIT License](LICENSE).
+
 
