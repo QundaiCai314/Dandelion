@@ -1,6 +1,6 @@
 ---
 name: business-chain-diagnosis
-description: '商业链路诊断（Business Loop Diagnosis）。每次诊断先跑全网市场调研：运行 references/market_research.py 联网搜索 8 项市场指标（用户画像/群体范围/痛点/付费意愿/付费习惯/竞品/市场规模/渠道）并按证据打分，无 API key 时自动降级为检索清单+agent 补查。当用户想判断数字产品/SaaS/软件/App/订阅服务的设计是否打通商业链路，或希望 AI 帮助补充商业思维时使用。支持自检模式（一问一答逐环节自检）与项目检查模式（直接检查 GitHub 仓库/本地项目/产品描述，发现问题时询问项目归属）。诊断后提供修复模式：AI 为每个问题输出完整修改方案（目标、具体改动、实施步骤、验收标准），由用户自己执行；支持导出可分享的 Markdown 诊断报告。输出：逐环节诊断、0-10 打分、链路结论、问题清单、修复方案、行动清单。Use when the user wants to assess whether a digital product or SaaS design closes the business loop, either as a creator self-checking via Q&A, or by inspecting a project/repo; provide complete fix plans for the user to execute, and export a shareable report.'
+description: '商业链路诊断（Business Loop Diagnosis）。每次诊断先跑全网市场调研：运行 references/market_research.py 联网搜索 8 项市场指标（用户画像/群体范围/痛点/付费意愿/付费习惯/竞品/市场规模/渠道）并按证据打分，无 API key 时自动降级为检索清单+agent 补查。当用户想判断数字产品/SaaS/软件/App/订阅服务的设计是否打通商业链路，或希望 AI 帮助补充商业思维时使用。支持自检模式（一问一答逐环节自检）与项目检查模式（直接检查 GitHub 仓库/本地项目/产品描述，发现问题时询问项目归属）。诊断后提供修复模式：AI 为每个问题输出完整修改方案（目标、具体改动、实施步骤、验收标准），由用户自己执行；支持导出可分享的 Markdown 诊断报告。可选：Mom Test 访谈教练、社区直抓信号、单位经济学测算（LTV/CAC）、产品化输出（pitch/落地页文案）。输出：逐环节诊断、0-10 打分、链路结论、问题清单、修复方案、行动清单。Use when the user wants to assess whether a digital product or SaaS design closes the business loop, either as a creator self-checking via Q&A, or by inspecting a project/repo; provide complete fix plans for the user to execute, and export a shareable report. Optional: Mom Test interview coach, community-signal capture, unit-economics (LTV/CAC) calculator, productization (pitch/landing copy).'
 ---
 
 # 商业链路诊断 Business Loop Diagnosis
@@ -13,17 +13,21 @@ Assess whether a digital product/SaaS design closes the business loop, helping c
   Self-Check: the user is the creator reviewing their own product. By default one question at a time; the AI walks through the 7 stages in order (market research first) and scores from the answers.
 - **项目检查模式 Project Inspection**：用户给出项目本身（GitHub 仓库 / 本地目录 / 产品描述），AI 直接检查整个项目。发现问题时询问项目归属：别人的项目按公开证据出报告；自己的项目则请用户补充材料或切换为一问一答追问，重新打分。
   Project Inspection: the user provides the project itself (GitHub repo / local directory / product description) and the AI inspects it directly. When problems are found, the AI asks who owns the project: for projects of others it reports from public evidence; for your own, it asks you to supply materials or switches to one-question-at-a-time follow-up, then re-scores.
+- **访谈加深 Interview**：可选。用户要求「访谈 / 访谈加深」时，AI 按 references/interview.md 扮演访谈教练：一次一问、记录证据并回填证据表单，再复检。
+  Optional. On "interview" / "deep-dive", the AI coaches per references/interview.md: one question at a time, logs evidence back into the evidence form, then re-checks.
 
 ## 诊断之后 After Diagnosis
 - **修复模式 Repair**：诊断报告后，AI 为每个问题输出**完整修改方案**（目标、具体改动、实施步骤、验收标准），由用户自己执行；AI 负责方案细化、答疑与复检，不直接修改用户的产品。
   After the report, the AI outputs a **complete fix plan** per problem (goal, concrete changes, steps, acceptance criteria) for the user to execute themselves; the AI only refines plans, answers questions, and re-checks — it never directly modifies the product.
 - **结论输出 Export**：把完整结论输出为可保存/分享的 Markdown 报告文件。
   Export the full conclusion as a shareable Markdown report file.
+- **产品化输出 Productize**：可选。按 references/pitch-template.md 生成 30 秒 pitch、一句话价值主张、落地页首屏、三档定价卡与冷启动渠道清单，作为给用户的材料。
+  Optional. Produce pitch / value prop / landing hero / pricing cards / cold-start channels per references/pitch-template.md — materials for the user.
 
 ## 流程 Process
 1. 判断模式：用户给的是项目/链接/目录，或要求「检查这个项目」→ 项目检查模式；用户说「帮我自检我的产品 / 看看我做得怎么样」→ 自检模式；不确定时先问一句：这是你自己的项目，还是要检查别人的？
    Determine the mode: a project/link/directory or a request to "inspect this project" → Project Inspection; "help me self-check my product / see how I am doing" → Self-Check; if unclear, ask first whether the project belongs to the user or to someone else.
-2. 市场调研：正式诊断前，先运行 python references/market_research.py --product "<产品描述>"（有 API key 自动联网搜索；无 key 时按生成的 evidence_fill_form.json 由 agent 用自己的联网搜索补完证据，再以 --score-only 计算分数），产出 8 项市场指标（用户画像/群体范围/痛点/付费意愿/付费习惯/竞品/市场规模/渠道）的分数与证据来源，作为后续环节的外部核对依据；未运行调研时市场调研环节 ≤3 分。
+2. 市场调研：正式诊断前，先运行 python references/market_research.py --product "<产品描述>"（有 API key 自动联网搜索；无 key 时按生成的 evidence_fill_form.json 由 agent 用自己的联网搜索补完证据，再以 --score-only 计算分数），产出 8 项市场指标（用户画像/群体范围/痛点/付费意愿/付费习惯/竞品/市场规模/渠道）的分数与证据来源，作为后续环节的外部核对依据；未运行调研时市场调研环节 ≤3 分。检索计划含社区定向查询（site:reddit.com / news.ycombinator.com / zhihu.com 等），报告输出「社区信号 Community Signals」板块；付费转化环节有定价/成本数字时运行 references/economics.py 测算 LTV/CAC。
    Market research: before diagnosis, run python references/market_research.py --product "<product>" (live search with an API key; without a key, complete evidence_fill_form.json via the agent's own web search, then --score-only), producing scores and evidence sources for the 8 market metrics (persona/scope/pain/willingness/habits/competitors/size/channels) as the external cross-checking basis; no research → the stage caps at 3.
    Paths & Python: all script/doc paths are relative to the skill directory — resolve the absolute path (e.g. <skill_dir>/references/market_research.py) when the working directory is not the skill root; requires Python 3.8+. The script preserves filled evidence (refuses to overwrite another product's form without --force); stage score = round(machine overall) capped by coverage, rules in references/framework.md. 路径以 skill 目录为基准：当前目录不是 skill 根目录时先解析绝对路径；需要 Python 3.8+；脚本不会覆盖已填证据；环节分 = 机器总体分按覆盖率封顶（见 references/framework.md）。附加参数 Additional flags：--target-user/--market/--lang（与 product.json 字段一致，便于命令行直接带参）。
 3. 项目检查：多通道收集证据（README、docs、代码结构、官网、定价页、应用商店页、公开报道与社区讨论），逐环节诊断打分。
@@ -67,6 +71,8 @@ Assess whether a digital product/SaaS design closes the business loop, helping c
   Fixes proceed item by item; the user may re-check anytime to compare score changes.
 - 输出语言跟随用户提问语言；说明文档为中英双语。
   Output language follows the language of the user; the documentation is bilingual (Chinese & English).
+- 访谈可选不算低分；单位经济有数字必须测算（references/economics.py），缺数字按「未测算」记、不臆测；社区信号用于核对真实需求与付费意愿。
+  Interviews are optional (no interviews is not a low-score reason); unit economics must be computed with numbers (references/economics.py) and "not measured" otherwise; community signals cross-check demand and willingness to pay.
 
 ## 资源 Resources
 - references/market_research.py — 市场调研引擎（必跑）：全网搜索 8 项市场指标并按证据打分；多后端（Tavily/Serper/Bing）+ 无 key 自动降级
@@ -76,6 +82,10 @@ Assess whether a digital product/SaaS design closes the business loop, helping c
 - references/scoring.py — 打分计算器（可选）：校验平均分、结论与行动优先级 Scoring calculator (optional): verifies average, verdict and action priority
 - references/output-template.md — 报告模板与导出说明
   Report template and export notes
+- references/interview.md — 访谈脚本（Mom Test 风格，可选加深证据）Interview script (Mom Test style, optional)
+- references/economics.py — 单位经济学测算器（LTV/CAC、毛利率、回本周期）Unit economics calculator (LTV/CAC, margin, payback)
+- references/pitch-template.md — 产品化输出模板（pitch/落地页/定价卡）Productize template (pitch/landing/pricing)
+- docs/comparison.md — 同类工具对比与差异化定位 Comparison & positioning
 - examples/example-output.md — 示例报告（含修复与输出示例）
 - tests/test_sanity.py — 自检测试（`python tests/test_sanity.py`）Sanity tests (stdlib only)
   Example report (including repair and export examples)

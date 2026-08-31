@@ -25,6 +25,7 @@ In Self-Check mode (or after confirming the project is yours during inspection),
 - 有 API key 时：运行 `python references/market_research.py --product "<产品描述>"`，程序自动联网搜索并按指标打分、附证据来源。 With an API key: run the script for live search and per-metric scores with evidence sources.
 - 无 API key 时：程序生成检索计划与 evidence_fill_form.json，由 agent 用自身联网搜索补完证据，再运行 `--score-only` 计算分数。 Without an API key: the program generates a search plan and evidence_fill_form.json; the agent completes evidence with its own web search, then runs `--score-only`.
 - 调研结果与你的产品主张一致吗？不一致的地方就是风险点。 Do the findings agree with your product claims? Discrepancies are risk points.
+- 社区信号核对了吗？读一读报告「社区信号」板块里目标用户聚集社区的真实讨论，区分「想要」与「愿意付费」。 Did you read the real community discussions in the report's "Community Signals" section? Distinguish "want it" from "willing to pay".
 
 ### 2. 真实需求 Real Demand（先对齐，再谈其他）
 - 你的目标用户处于什么状态：还没决定要不要做？决定做了但没选方案？已在用方案但不满意？ What state is your target user in: undecided about doing it? decided but choosing a solution? already using one but dissatisfied?
@@ -52,7 +53,10 @@ In Self-Check mode (or after confirming the project is yours during inspection),
 - 免费与付费的边界在哪？升级理由充分吗？ Where is the free/paid line? Is the upgrade reason strong?
 - 付费入口与支付流程设计好了吗？ Is the payment entry and checkout flow designed?
 - 有付费意愿的间接证据吗（对标价格、同类付费产品、社区反馈）？ Any indirect willingness-to-pay evidence (benchmark prices, similar paid products, community feedback)?
-- 单位经济算过吗（LTV/CAC、毛利率）？ Unit economics estimated (LTV/CAC, gross margin)?
+- 单位经济算过吗（LTV/CAC、毛利率）？有数字就运行 python references/economics.py 测算：
+LTV/CAC>=3 健康、1-3 需优化、<1 断裂信号；说不出数字按「未测算」记，不臆测。
+Unit economics estimated (LTV/CAC, gross margin)? With numbers, run python references/economics.py:
+LTV/CAC >=3 healthy, 1-3 needs work, <1 broken; no numbers = "not measured", never guess.
 
 ### 6. 交付与体验 Delivery & Activation
 - 用户第一次使用后，多久能感受到核心价值（Aha moment）？ After first use, how soon do users feel the core value (aha moment)?
@@ -65,6 +69,20 @@ In Self-Check mode (or after confirming the project is yours during inspection),
 - 什么机制让用户帮你传播（推荐奖励、可炫耀点、分享路径）？ What makes users spread the word (referral rewards, shareable wins, sharing paths)?
 - 流失预警和召回怎么做？ Churn warning and win-back?
 - 留存指标定义了吗（留存率、复购率、NPS）？ Retention metrics defined (retention rate, repurchase rate, NPS)?
+
+## 访谈模式（可选加深证据）Interview Mode (optional evidence deep-dive)
+访谈是可选环节，不是打分前提：起步阶段没有访谈是正常的，不构成低分理由。用户要求「访谈 / 访谈加深」时，
+AI 扮演访谈教练，按 references/interview.md 逐题提问（一次一问）、记录证据，并落地到 evidence_fill_form.json 后复检。
+Interviews are optional, not a scoring prerequisite — a solo founder naturally has none at the start.
+On request ("interview" / "deep-dive"), the AI coaches per references/interview.md: one question at a time,
+log evidence, feed it into evidence_fill_form.json, then re-check.
+- 硬性纪律 Hard rules：少于 3 个真实目标用户不得声称「已访谈」；对象必须符合「人群+决策状态+场景」；
+  只记录过去实际行为，不做推销；禁止把「我想要」当「用户想要」。
+  Fewer than 3 real target users = never claim "interviewed"; interviewees must match segment+decision state+scenario;
+  record past behavior only; never pitch; never treat "I want it" as "the user wants it".
+- 证据作用 Evidence role：访谈 + 社区/竞品核对可支撑 strong（深度对齐 + 外部核对）；未访谈不算低分，
+  但「说不出用户、零核对」要按模糊/未对齐封顶（<=3）。 Interviews + community/competitor cross-checks can support strong;
+  no interviews is NOT a low-score reason, but "cannot state the user, zero cross-checks" caps at vague (<=3).
 
 ## 打分细则（每环节 0-10 分，按判断深度）Scoring (0-10 per stage, by judgment depth)
 分数 = 定义深度 × 外部核对。判断是否严格，看的是「想得够不够深、需求有没有对齐」，而不是有没有访谈或使用数据——个人做工具在起步阶段没有这些是正常的。
@@ -182,13 +200,19 @@ The JSON must contain a scores object with the seven keys: market_research / rea
 修复按「断裂 → 薄弱 → 增长杠杆」顺序逐项进行。AI 不直接修改用户产品，而是为每项输出**完整修改方案**：目标 → 具体改动 → 实施步骤 → 验收标准；用户确认后自行执行，执行完成可要求复检。
 Fixes proceed item by item in the order "broken → weak → growth levers". The AI does not modify the product; for each item it outputs a **complete fix plan**: goal → concrete changes → implementation steps → acceptance criteria; the user executes after confirming and may request a re-check when done.
 各环节常见修复杠杆（作为方案内容素材）Common repair levers per stage (material for the plans):
-市场调研 Market Research：配置搜索 API key 后重跑调研（TAVILY_API_KEY / SERPER_API_KEY / BING_API_KEY）；补齐缺失指标；把行业数据落进画像、定价与渠道选择
+市场调研 Market Research：配置搜索 API key 后重跑调研（TAVILY_API_KEY / SERPER_API_KEY / BING_API_KEY）；补齐缺失指标；把行业数据落进画像、定价与渠道选择；读「社区信号」核对真实需求；用 references/interview.md 做 3-5 个目标用户访谈
 - 真实需求 Real Demand：目标人群与决策状态定义模板、相邻人群区分表、桌面研究清单（社区/竞品/公开报告） target-segment & decision-state definition template, adjacent-segment distinction table, desk-research checklist (communities/competitors/public reports)
 - 价值主张 Value Proposition：一句话价值主张模板（为谁含决策状态/解决什么/为什么是你）、落地页首屏文案、与替代方案对比表 one-sentence value proposition template, landing-page above-the-fold copy, comparison table vs alternatives
 - 获客 Acquisition：种子用户获取计划（渠道 + 话术 + 数量目标）、落地页结构、内容选题清单 seed-user acquisition plan (channels + scripts + targets), landing page structure, content topic list
-- 付费转化 Paid Conversion：3 档定价方案、免费/付费边界定义、支付流程清单、LTV/CAC 测算表 3-tier pricing, free/paid boundary, checkout checklist, LTV/CAC model
+- 付费转化 Paid Conversion：3 档定价方案、免费/付费边界定义、支付流程清单、用 references/economics.py 测算 LTV/CAC 与回本周期 3-tier pricing, free/paid boundary, checkout checklist, LTV/CAC model via references/economics.py
 - 交付与体验 Delivery & Experience：激活路径设计（3 步内兑现核心价值）、新手引导文案、激活指标定义 activation path (core value within 3 steps), onboarding copy, activation metric definition
 - 复购传播 Retention & Referral：留存机制设计（习惯循环/内容更新/续费提醒）、推荐奖励方案、流失召回路径 retention mechanics (habit loops/updates/renewal reminders), referral rewards, win-back paths
+
+## 产品化输出（可选交付物）Productize (optional deliverable)
+用户诊断后可要求「产品化输出」：AI 按 references/pitch-template.md 生成 30 秒 pitch、一句话价值主张、
+落地页首屏结构与文案、三档定价卡、冷启动渠道清单。产出的是给用户的材料，不直接修改用户产品。
+On request the AI produces pitch / value proposition / landing-page hero / pricing cards / cold-start channels
+per references/pitch-template.md — materials FOR the user, never direct edits to their product.
 
 ## 复检规则 Re-check
 用户可随时要求「复检」：用当前证据重新逐环节打分，对比上次分数，更新结论与剩余行动。

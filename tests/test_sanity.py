@@ -101,6 +101,31 @@ def test_scoring_calculator():
     assert rc == 0 and parsed["scores"]["real_demand"] == 3.0
 
 
+def test_community_queries():
+    mr = load_module("market_research", os.path.join("references", "market_research.py"))
+    assert mr.is_community("https://www.reddit.com/r/SaaS/comments/x") is True
+    assert mr.is_community("https://news.ycombinator.com/item?id=1") is True
+    assert mr.is_community("https://www.wsj.com/foo") is False
+    cm = mr.community_queries("出海一人公司工具箱", "已决定出海的一人创业者", "zh")
+    assert sorted(cm.keys()) == sorted(mr.COMMUNITY_METRICS)
+    for mid in mr.COMMUNITY_METRICS:
+        assert cm[mid] and any("site:" in q for q in cm[mid])
+    cm_en = mr.community_queries("solo founder toolbox", "", "en")
+    assert "site:reddit.com" in cm_en["channels"][0]
+
+
+def test_economics_calculator():
+    ec = load_module("economics", os.path.join("references", "economics.py"))
+    healthy = ec.calculate({"price": 20, "unit_cost": 4, "cac": 100, "monthly_churn": 0.04})
+    assert healthy["verdict"] == "healthy" and healthy["ltv_cac"] == 4.0
+    broken = ec.calculate({"price": 20, "cac": 200, "monthly_churn": 0.3})
+    assert broken["verdict"] == "broken"
+    insufficient = ec.calculate({"price": 20})
+    assert insufficient["verdict"] == "insufficient"
+    one_time = ec.calculate({"price": 299, "unit_cost": 30, "cac": 500, "period": "one_time"})
+    assert one_time["ltv"] == 269.0
+
+
 def test_cli_help():
     for rel in ("references/market_research.py", "references/scoring.py"):
         r = subprocess.run([sys.executable, os.path.join(REPO, rel), "--help"],
@@ -120,6 +145,7 @@ def test_cli_flags():
             form = json.load(f)
         assert form["product"] == "测试产品X"
         assert form["metrics"]["user_persona"]["queries"]
+        assert "community_plan" in form and form["community_plan"]["pain_point"]
         with open(os.path.join(td, "r.json"), encoding="utf-8") as f:
             rep = json.load(f)
         assert rep["product"] == "测试产品X" and rep["target_user"] == "已决定出海的一人创业者"

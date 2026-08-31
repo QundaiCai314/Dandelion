@@ -9,11 +9,15 @@ A skill for any AI agent: assess whether a **digital product / SaaS / software /
 ## What It Does
 - **Two modes**: ① Self-Check — creators review their own product via one-question-at-a-time Q&A; ② Project Inspection — directly inspect a GitHub repo / local project / product description and produce a report.
 - **Market research first**: every diagnosis starts with a web desk-research pass — `references/market_research.py` searches the web for 8 market metrics (user persona, market scope, pain points, willingness to pay, payment habits, competitors, market size, channels) and scores each 0-10 with evidence sources; without an API key it degrades to a search plan + agent-filled evidence form
+- **Community signals**: the research engine adds site-targeted queries (`site:reddit.com`, `site:news.ycombinator.com`, `site:zhihu.com`, `site:indiehackers.com` ...) and the report gains a "Community Signals" section listing real user discussions to cross-check demand
 - Seven-stage loop model: Market Research → Real Demand → Value Proposition → Acquisition → Paid Conversion → Delivery & Experience → Retention & Referral
 - Each stage scored 0-10, with clear verdict rules: **Loop Closed / Nearly Closed / Not Closed**
 - Full report: Diagnosis → Scores → Problem List → Fix Plan → Action Plan
 - When inspection finds problems, the skill asks **"Is this your own project?"**: for others' projects it reports based on public evidence and flags missing evidence; for your own, it asks you to supply materials or answers questions one by one, then re-scores
 - **Repair Mode**: after diagnosis, outputs a complete fix plan per problem (goal, concrete changes, steps, acceptance criteria) for YOU to execute; the AI only refines the plan, answers questions, and re-checks — it never modifies your product directly
+- **Interview Mode (optional)**: a Mom Test-style interview coach (`references/interview.md`) — one question at a time, evidence logging, feed-back into the evidence form
+- **Unit economics (optional)**: `references/economics.py` computes gross margin, LTV, LTV/CAC and payback period when you have numbers
+- **Productize (optional)**: `references/pitch-template.md` turns the verdict into a 30-second pitch, one-line value proposition, landing-page hero, pricing cards and cold-start channels
 - **Export**: generates a shareable Markdown report (`business-chain-report.md`)
 - Evidence-first: stages without evidence are capped at 3 and flagged; no guessing
 - **Scoring calculator**: optional `references/scoring.py` verifies the average, verdict and action priority for consistent results
@@ -31,6 +35,8 @@ Every diagnosis starts with a market-research pass. The engine `references/marke
 | Competitors | number, leaders, differentiation space |
 | Market Size | TAM/SAM, public data and trends |
 | Channels | where target users gather |
+
+**Community signals**: besides general queries, the plan includes site-targeted queries for community-relevant metrics (user persona, pain points, willingness to pay, competitors, channels). Live search collects them into a "Community Signals" section of the report; in degraded mode the checklist is written to `community_plan` in `evidence_fill_form.json` for the agent to run and fill back into `community_signals`.
 
 **Search backends** (auto-detected in order; set any one):
 - `TAVILY_API_KEY` — https://tavily.com (recommended)
@@ -62,8 +68,25 @@ Scores combine result count + credible sources + concrete numbers + a weak relev
 Re-running never wipes a filled evidence form: evidence is preserved and only queries refresh; a form belonging to another product is refused unless `--force`.
 Paths are relative to the skill directory — resolve the absolute path (e.g. `<skill_dir>/references/market_research.py`) when your working directory is not the skill root. Requires Python 3.8+.
 
+## Unit Economics Calculator
+`references/economics.py` turns pricing/cost numbers into the unit-economics metrics used by the Paid Conversion stage:
+- Input: `price` (per month / year / one-time), `unit_cost`, `cac`, `monthly_churn` (or `annual_churn`), optional `gross_margin_pct`
+- Output: gross margin %, customer lifetime, LTV, LTV/CAC, payback period
+- Verdict: LTV/CAC ≥ 3 healthy · 1-3 needs work · <1 broken signal
+- Usage: `python references/economics.py economics.json --json` or `--interactive`
+- Rule: with numbers you must compute; without numbers the stage is marked "not measured" — never guessed
+
+## Interview Mode (optional)
+`references/interview.md` — a Mom Test-style interview script: hard rules (fewer than 3 real target users = never claim "interviewed"; past behavior only; never pitch), a per-stage question bank, a good-vs-bad question table, an interview log template, and how to feed evidence back into `evidence_fill_form.json` before re-scoring. Interviews are optional — having none is not a low-score reason; they upgrade "clearly defined but not cross-checked" into "aligned + cross-checked".
+
+## Productize (optional)
+`references/pitch-template.md` — after the diagnosis, ask "productize my pitch" and the AI produces: a 30-second pitch, a one-line value proposition, landing-page above-the-fold structure, a 3-tier pricing card, and a cold-start channel checklist. Materials are FOR the user; the AI never edits the product directly.
+
 ## Install
-Copy this repository directory (default folder name `Dandelion`, containing SKILL.md) into your agent's skills directory.
+Copy this repository directory (default folder name `Dandelion`, containing SKILL.md) into your agent's skills directory, or clone and copy:
+```
+git clone https://github.com/QundaiCai314/Dandelion.git
+```
 
 | Agent | Directory |
 | --- | --- |
@@ -77,20 +100,31 @@ Self-check: "Use the business-chain-diagnosis skill to review my product: <one-l
 
 Project inspection: "Use the business-chain-diagnosis skill to inspect this project: <repo URL / local path>"
 
+Interview: "Use the skill for an interview deep-dive on my product"
+
 Repair: "After the diagnosis, help me fix the acquisition stage"
 
 Re-check: "Re-check with my current situation"
+
+Productize: "Productize my pitch"
 
 Export: "Export the report to a file"
 
 ## Structure
 - SKILL.md — main skill file (trigger description, two-mode workflow, repair & export workflow, core rules)
-- references/market_research.py — market research engine (multi-backend web search: Tavily / Serper / Bing; no-key fallback generates a search plan + evidence fill form)
+- references/market_research.py — market research engine (multi-backend web search: Tavily / Serper / Bing; community-targeted queries + Community Signals section; no-key fallback generates a search plan + evidence fill form)
 - references/framework.md — loop model, self-check questions, per-stage checklists, scoring, verdict rules, repair playbook & re-check rules
+- references/interview.md — Mom Test-style interview script (optional evidence deep-dive)
+- references/economics.py — unit economics calculator (gross margin, LTV/CAC, payback)
+- references/pitch-template.md — productize template (pitch / landing hero / pricing cards)
 - references/output-template.md — report template & export notes
 - references/scoring.py — optional scoring calculator (average, verdict, action priority)
+- docs/comparison.md — comparison vs similar tools & positioning
 - examples/example-output.md — example report
 - LICENSE — MIT License
+
+## How It Compares
+See [docs/comparison.md](docs/comparison.md) for a side-by-side with similar tools (venture-analyst, idea-os, Hermes biz-strategy, reddit-business-idea-validator, Business Idea Validator MCP, pmf-kit, launchlens, ...). Dandelion's edge: inspects EXISTING projects/repos (not just ideas), full 7-stage loop with a repair → re-check cycle, an ownership gate (own vs others' projects), and a no-key-first research engine.
 
 ## Scoring Rules
 - Each stage 0-10: ≥7 healthy; 5-6.9 weak; <5 broken
@@ -101,14 +135,11 @@ Export: "Export the report to a file"
 - Others' projects: verdict is labeled "based on public evidence"; your own project: unanswered/unverified counts as weak
 - Market Research: no research ≤3; researched but thin ≤6; 7+ requires all 8 metrics backed by evidence consistent with the product claims
 - Deep judgment: vague/misaligned ≤3; clearly defined but not cross-checked ≤6; 7+ requires aligned demand cross-checked via desk research (interviews/data not required); Retention & Referral with no design ≤2
+- Unit economics: with numbers compute LTV/CAC via references/economics.py (≥3 healthy, <1 broken); without numbers mark "not measured"
 
 ## Tests & Version
-- `python tests/test_sanity.py` — sanity tests for the scoring heuristics and the calculator (stdlib only, no third-party dependencies)
-- Version: 1.1.0
+- `python tests/test_sanity.py` — sanity tests for the scoring heuristics, the calculators and the community queries (stdlib only, no third-party dependencies)
+- Version: 1.2.0
 
 ## License
 Released under the [MIT License](LICENSE).
-
-
-
-

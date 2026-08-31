@@ -45,7 +45,7 @@
 import json
 import sys
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 STAGES = [
     ("market_research", "市场调研 Market Research"),

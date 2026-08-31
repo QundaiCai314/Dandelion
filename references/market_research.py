@@ -36,6 +36,9 @@ Runs desk research on the web for a digital product and outputs evidence and
 
 没有配置任何 key 时: 程序生成每个指标的搜索词清单和 evidence_fill_form.json，
 由 agent 用自己的联网搜索补完证据，再用 --score-only 计算分数；流程自动降级，不中断。
+社区直抓 Community: 检索计划包含 site:reddit.com / news.ycombinator.com / zhihu.com 等
+定向查询，报告输出「社区信号 Community Signals」板块；无 key 时社区直查清单写进
+evidence_fill_form.json 的 community_plan 字段，由 agent 补查后回填 community_signals。
 When no API key is configured: the program generates a search plan (query
 list per metric) and evidence_fill_form.json; the agent completes the evidence
 with its own web search, then runs --score-only to compute scores.
@@ -49,7 +52,7 @@ import time
 import urllib.parse
 import urllib.request
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 # ---------------------------------------------------------------------------
 # 指标定义 Metrics
@@ -87,6 +90,19 @@ CREDIBLE_DOMAINS = (
     "jiemian.com", "thepaper.cn", "caixin.com", "tmtpost.com",
     "sensortower.com", "semrush.com", "ahrefs.com",
 )
+
+COMMUNITY_DOMAINS = (
+    "reddit.com", "news.ycombinator.com", "ycombinator.com", "zhihu.com",
+    "quora.com", "indiehackers.com", "v2ex.com", "producthunt.com", "sspai.com",
+)
+
+
+def is_community(url):
+    """True if the URL host belongs to a user community (Reddit/HN/知乎 etc.)."""
+    host = _host_of(url)
+    if not host:
+        return False
+    return any(host == d or host.endswith("." + d) for d in COMMUNITY_DOMAINS)
 
 SPECIFIC_RE = re.compile(
     r"(\d+(\.\d+)?\s*(%|万|亿|k|m|b|美元|人民币|元|\$|€|£|users|million|billion|人|家|款))"
@@ -179,6 +195,36 @@ def default_queries(product, target_user, lang):
         q[0][1].insert(0, f"{t} 痛点 讨论")
         q[2][1].insert(0, f"{t} problems community")
     return q
+
+
+COMMUNITY_METRICS = ("user_persona", "pain_point", "willingness_to_pay", "competitors", "channels")
+
+COMMUNITY_SITES_ZH = "site:zhihu.com OR site:reddit.com OR site:quora.com"
+COMMUNITY_SITES_EN = "site:reddit.com OR site:news.ycombinator.com OR site:indiehackers.com"
+
+
+def community_queries(product, target_user, lang):
+    """社区定向检索词（site: 操作符），用于直抓目标用户的真实讨论。
+
+    覆盖 5 个与社区证据最相关的指标；无 key 降级时作为 agent 的直查清单。
+    """
+    kw = query_keywords(product)
+    t = query_keywords(target_user) if target_user else kw
+    if lang == "en":
+        return {
+            "user_persona": [f"{t} {COMMUNITY_SITES_EN}"],
+            "pain_point": [f"{kw} problems complaints {COMMUNITY_SITES_EN}"],
+            "willingness_to_pay": [f"{kw} pricing paid {COMMUNITY_SITES_EN}"],
+            "competitors": [f"{kw} alternatives {COMMUNITY_SITES_EN}"],
+            "channels": [f"{kw} {COMMUNITY_SITES_EN}"],
+        }
+    return {
+        "user_persona": [f"{t} 讨论 {COMMUNITY_SITES_ZH}"],
+        "pain_point": [f"{kw} 痛点 抱怨 吐槽 {COMMUNITY_SITES_ZH}"],
+        "willingness_to_pay": [f"{kw} 付费 价格 值不值 {COMMUNITY_SITES_ZH}"],
+        "competitors": [f"{kw} 替代 推荐 对比 {COMMUNITY_SITES_ZH}"],
+        "channels": [f"{kw} {COMMUNITY_SITES_ZH}"],
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -312,7 +358,7 @@ def tier_for(score):
 # ---------------------------------------------------------------------------
 # 输出 Output
 # ---------------------------------------------------------------------------
-def build_report(product_desc, target_user, market, lang, metrics, backend, mode, generated_at, notes):
+def build_report(product_desc, target_user, market, lang, metrics, backend, mode, generated_at, notes, community_signals=None):
     scores = [m["score"] for m in metrics]
     overall = round(sum(scores) / len(scores), 1) if scores else 0.0
     return {
@@ -326,6 +372,7 @@ def build_report(product_desc, target_user, market, lang, metrics, backend, mode
         "overall_score": overall,
         "overall_tier": tier_for(overall),
         "metrics": metrics,
+        "community_signals": community_signals or [],
         "notes": notes,
     }
 
@@ -368,6 +415,23 @@ def render_markdown(report):
             snip = e.get("snippet", "").strip()
             if snip:
                 lines.append("  %s" % snip[:220])
+        lines.append("")
+    community = report.get("community_signals") or []
+    if community:
+        lines.append("### 社区信号 Community Signals")
+        lines.append("")
+        lines.append("目标用户在社区里的真实讨论（直抓；agent 需阅读核对真实需求、付费意愿等）：")
+        lines.append("Real community discussions (directly captured; read them to verify demand & willingness to pay):")
+        lines.append("")
+        for e in community[:8]:
+            lines.append("- %s [%s](%s)" % (e.get("title", ""), e.get("url", ""), e.get("url", "")))
+            snip = e.get("snippet", "").strip()
+            if snip:
+                lines.append("  %s" % snip[:200])
+        lines.append("")
+    elif report.get("mode") in ("plan_only", "agent_fill"):
+        lines.append("> 社区直查清单 Community checklist：请运行 evidence_fill_form.json 中 community_plan 的 site: 查询，")
+        lines.append("> 把结果填进 community_signals 后重跑 --score-only。")
         lines.append("")
     if report.get("notes"):
         lines.append("> 备注 Notes：%s" % report["notes"])
@@ -504,11 +568,14 @@ def main():
 
     metrics_out = []
     notes = []
+    community_signals = []
 
     # ---- 模式 1: 仅用填写表单打分（不联网） ----
     if args["score_only"]:
         with open(args["score_only"], encoding="utf-8") as f:
-            filled = json.load(f).get("metrics", {})
+            filled_form = json.load(f)
+        filled = filled_form.get("metrics", {})
+        community_signals = filled_form.get("community_signals") or []
         for mid, label, desc in METRICS:
             entry = filled.get(mid, {}) or {}
             if "score" in entry and isinstance(entry["score"], (int, float)):
@@ -547,8 +614,11 @@ def main():
             notes.append("Live search (multi-backend fallback: %s); scores are machine evidence scores; calibrate with --calibrate." % backend)
 
         # 生成检索计划 / 证据表单（保留已有已填证据，不静默覆盖）
+        community_map = community_queries(product, target_user, lang)
+        community_plan = {mid: community_map.get(mid, []) for mid in COMMUNITY_METRICS}
         plan = [{"id": mid, "label": label, "desc": desc,
-                 "queries": queries_map.get(mid, [])[:3]}
+                 "queries": (queries_map.get(mid, [])[:3] +
+                             community_map.get(mid, [])[:2])}
                 for mid, label, desc in METRICS]
 
         preserved = {}
@@ -577,6 +647,8 @@ def main():
                 preserved = {}
 
         fill_out = {"product": product, "target_user": target_user,
+                    "community_plan": community_plan,
+                    "community_signals": community_signals,
                     "metrics": {p["id"]: {
                         "evidence": (preserved.get(p["id"]) or {}).get("evidence", []),
                         "note": (preserved.get(p["id"]) or {}).get("note", ""),
@@ -608,6 +680,8 @@ def main():
                         if u and u not in seen:
                             seen.add(u)
                             evidence.append(r)
+                            if is_community(u):
+                                community_signals.append(r)
                     if len(evidence) >= 5:
                         break
                     time.sleep(0.3)
@@ -619,6 +693,13 @@ def main():
                     "evidence": evidence[:6], "summary": summary,
                     "queries": " | ".join(p["queries"]),
                 })
+            seen_c, signals = set(), []
+            for item in community_signals:
+                u = item.get("url", "")
+                if u and u not in seen_c:
+                    seen_c.add(u)
+                    signals.append(item)
+            community_signals = signals
             if used_backends:
                 backend = " -> ".join(used_backends)
         else:
@@ -649,7 +730,7 @@ def main():
             print("警告 warning: 校准文件读取失败 %s" % e)
 
     report = build_report(product, target_user, market, lang, metrics_out,
-                          backend, mode, generated_at, notes)
+                          backend, mode, generated_at, notes, community_signals)
 
     with open(args["out"], "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
