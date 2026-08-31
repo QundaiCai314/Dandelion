@@ -52,6 +52,8 @@ Run:
 python references/market_research.py --product "one-line product description"
 ```
 
+Optional flags: `--target-user "<who>"`, `--market "<where>"`, `--lang zh|en|auto` — same fields as product.json.
+
 **No API key?** The script degrades automatically: it writes a search plan + `evidence_fill_form.json`; the agent completes the evidence with its own web search, then scores:
 ```
 python references/market_research.py --score-only evidence_fill_form.json

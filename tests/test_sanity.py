@@ -108,6 +108,23 @@ def test_cli_help():
         assert r.returncode == 0
 
 
+def test_cli_flags():
+    mr = os.path.join(REPO, "references", "market_research.py")
+    with tempfile.TemporaryDirectory() as td:
+        r = subprocess.run(
+            [sys.executable, mr, "--product", "测试产品X", "--target-user", "已决定出海的一人创业者",
+             "--market", "全球", "--lang", "zh", "--out", "r.json", "--format", "md"],
+            cwd=td, capture_output=True, text=True, encoding="utf-8")
+        assert r.returncode == 0, r.stderr
+        with open(os.path.join(td, "evidence_fill_form.json"), encoding="utf-8") as f:
+            form = json.load(f)
+        assert form["product"] == "测试产品X"
+        assert form["metrics"]["user_persona"]["queries"]
+        with open(os.path.join(td, "r.json"), encoding="utf-8") as f:
+            rep = json.load(f)
+        assert rep["product"] == "测试产品X" and rep["target_user"] == "已决定出海的一人创业者"
+
+
 if __name__ == "__main__":
     failed = 0
     for name in sorted(globals()):

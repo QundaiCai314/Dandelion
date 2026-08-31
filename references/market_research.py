@@ -25,6 +25,9 @@ Runs desk research on the web for a digital product and outputs evidence and
     --calibrate <path>      用人工校准 JSON {metric_id: score} 覆盖机器分
     --no-search             不联网，仅生成检索计划与证据表单
     --force                 覆盖已有的已填证据表单（默认保留；产品不同时拒绝覆盖）
+    --target-user <text>    目标用户描述 target users (可选 optional)
+    --market <text>         目标市场 target market (可选 optional)
+    --lang zh|en|auto       语言 language (可选 optional, 默认 auto)
 
 搜索后端 Search backends (按顺序自动选择，读环境变量):
     TAVILY_API_KEY   https://tavily.com            (推荐 recommended)
@@ -378,7 +381,8 @@ def render_markdown(report):
 def parse_args(argv):
     args = {"product": None, "out": "market_research_report.json",
             "format": "both", "score_only": None, "calibrate": None,
-            "no_search": False, "force": False}
+            "no_search": False, "force": False,
+            "target_user": "", "market": "", "lang": ""}
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -387,6 +391,15 @@ def parse_args(argv):
             sys.exit(0)
         elif a == "--product" and i + 1 < len(argv):
             args["product"] = argv[i + 1]
+            i += 1
+        elif a == "--target-user" and i + 1 < len(argv):
+            args["target_user"] = argv[i + 1]
+            i += 1
+        elif a == "--market" and i + 1 < len(argv):
+            args["market"] = argv[i + 1]
+            i += 1
+        elif a == "--lang" and i + 1 < len(argv):
+            args["lang"] = argv[i + 1]
             i += 1
         elif a == "--out" and i + 1 < len(argv):
             args["out"] = argv[i + 1]
@@ -473,6 +486,12 @@ def main():
         except Exception:
             score_only_data = {}
     product, target_user, market, lang = load_product(args["product"], score_only_data)
+    if args.get("target_user"):
+        target_user = args["target_user"]
+    if args.get("market"):
+        market = args["market"]
+    if args.get("lang"):
+        lang = args["lang"]
     if not product:
         print("错误 Error: product.json 缺少 product 字段")
         return 1

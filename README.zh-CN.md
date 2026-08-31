@@ -52,6 +52,8 @@ A skill for any AI agent: assess whether a digital product or SaaS design closes
 python references/market_research.py --product "产品一句话描述"
 ```
 
+可选参数：`--target-user "<目标用户>"`、`--market "<目标市场>"`、`--lang zh|en|auto`（与 product.json 字段一致）。
+
 **没有 API key？** 程序自动降级：生成检索计划 + `evidence_fill_form.json`，由 agent 用自己的联网搜索补完证据后打分：
 ```
 python references/market_research.py --score-only evidence_fill_form.json
