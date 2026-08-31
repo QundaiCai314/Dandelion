@@ -38,6 +38,16 @@ Every diagnosis starts with a market-research pass. The engine `references/marke
 - `SERPER_API_KEY` — https://serper.dev (Google search)
 - `BING_API_KEY` — Bing Web Search API
 
+**Set up a search key (optional, ~2 min)** — only needed if you want the script to search the web by itself:
+1. Pick one provider and get a free API key:
+   - Tavily (recommended, agent-friendly): https://tavily.com → Dashboard → API Keys
+   - Serper (Google results): https://serper.dev → API Key
+   - Bing: Azure portal → Bing Web Search resource → Keys & Endpoint
+2. Set the key as an environment variable (name must match the provider):
+   - Windows PowerShell: `$env:TAVILY_API_KEY="tvly-xxxx"` (current session) or `setx TAVILY_API_KEY "tvly-xxxx"` (permanent)
+   - macOS/Linux: `export TAVILY_API_KEY="tvly-xxxx"` (add to `~/.zshrc` or `~/.bashrc` to persist)
+3. Verify: `python references/market_research.py --product "test product"` shows a live backend (e.g. `tavily`) instead of `no API key`.
+
 Run:
 ```
 python references/market_research.py --product "one-line product description"

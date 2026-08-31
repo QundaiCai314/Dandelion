@@ -37,6 +37,16 @@ A skill for any AI agent: assess whether a digital product or SaaS design closes
 - `SERPER_API_KEY` — https://serper.dev（Google 搜索）
 - `BING_API_KEY` — Bing 网页搜索 API
 
+**配置搜索 key（可选，约 2 分钟）** —— 只有当你想让脚本自己联网搜索时才需要：
+1. 选一个服务商，注册并免费领取 API key：
+   - Tavily（推荐，为 agent 设计）：https://tavily.com → Dashboard → API Keys
+   - Serper（Google 结果）：https://serper.dev → API Key
+   - Bing：Azure 门户 → Bing Web Search 资源 → Keys & Endpoint
+2. 把 key 设成环境变量（变量名必须与上面一致）：
+   - Windows PowerShell：`$env:TAVILY_API_KEY="tvly-xxxx"`（仅当前会话）或 `setx TAVILY_API_KEY "tvly-xxxx"`（永久）
+   - macOS/Linux：`export TAVILY_API_KEY="tvly-xxxx"`（写入 `~/.zshrc` 或 `~/.bashrc` 持久生效）
+3. 验证：`python references/market_research.py --product "测试产品"` 显示 live 后端（如 `tavily`）而不是 `no API key`。
+
 运行：
 ```
 python references/market_research.py --product "产品一句话描述"
