@@ -1,3 +1,5 @@
+[English](README.md) | **中文**
+
 # Dandelion · 商业链路诊断 Business Loop Diagnosis
 
 一个面向所有 AI agent 的 skill（技能）：判断一个**数字产品 / SaaS / 软件 / App / 订阅服务**的设计是否打通了商业链路，帮助创造者补充商业思维。

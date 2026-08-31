@@ -1,3 +1,5 @@
+**English** | [中文](README.zh-CN.md)
+
 # Dandelion · Business Loop Diagnosis
 
 A skill for any AI agent: assess whether a **digital product / SaaS / software / App / subscription service** design closes the business loop, helping creators build business thinking.
@@ -34,8 +36,6 @@ Repair: "After the diagnosis, help me fix the acquisition stage"
 Re-check: "Re-check with my current situation"
 
 Export: "Export the report to a file"
-
-中文使用示例见 README.zh-CN.md。
 
 ## Structure
 - SKILL.md — main skill file (trigger description, two-mode workflow, repair & export workflow, core rules)
