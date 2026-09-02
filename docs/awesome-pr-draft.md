@@ -1,4 +1,4 @@
-﻿# Awesome 清单投稿草稿 Awesome List Submission Draft
+# Awesome 清单投稿草稿 Awesome List Submission Draft
 
 本文件是给「分发」用的现成投稿材料：README 条目、PR 标题与正文、Git 命令、SKILL.md 适配清单。
 Ready-to-paste materials for listing Dandelion on the major skill directories.

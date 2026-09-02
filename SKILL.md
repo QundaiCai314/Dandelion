@@ -1,4 +1,4 @@
-﻿---
+---
 name: business-chain-diagnosis
 description: '商业链路诊断（Business Loop Diagnosis）。每次诊断先跑全网市场调研：运行 references/market_research.py 联网搜索 8 项市场指标（用户画像/群体范围/痛点/付费意愿/付费习惯/竞品/市场规模/渠道）并按证据打分，无 API key 时自动降级为检索清单+agent 补查。当用户想判断数字产品/SaaS/软件/App/订阅服务的设计是否打通商业链路，或希望 AI 帮助补充商业思维时使用。支持自检模式（一问一答逐环节自检）与项目检查模式（直接检查 GitHub 仓库/本地项目/产品描述，发现问题时询问项目归属）。诊断后提供修复模式：AI 为每个问题输出完整修改方案（目标、具体改动、实施步骤、验收标准），由用户自己执行；支持导出可分享的 Markdown 诊断报告。可选：Mom Test 访谈教练、社区直抓信号、单位经济学测算（LTV/CAC）、产品化输出（pitch/落地页文案）。输出：逐环节诊断、0-10 打分、链路结论、问题清单、修复方案、行动清单。Use when the user wants to assess whether a digital product or SaaS design closes the business loop, either as a creator self-checking via Q&A, or by inspecting a project/repo; provide complete fix plans for the user to execute, and export a shareable report. Optional: Mom Test interview coach, community-signal capture, unit-economics (LTV/CAC) calculator, productization (pitch/landing copy).'
 ---
